@@ -53,5 +53,6 @@ There are 7 columns in the dictionary
 - If workings simultaneously with someone else, it's advisable to work in different sections of the spreadsheet.
 - If you have any issues, put them in the `comment` field.
 - If you have major issues, write Joe.
-- Be creative in your searching. The variable names in the data don't align closely with those in the pdf, so you may have to make some inference based on order, similarity of names, etc.
+- Be creative in your searching. The variable names in the data don't align closely with those in the pdf (sometimes they're completely different), so you may have to make some inference based on order, similarity of names, the `stata_label`, etc.
+- If you're not sure of something, but it's your "best guess" (based on order, intuition, etc.), then fill it in and place something in the `comment` file.d
 - You shouldn't need it, but just in case,  [here](https://github.com/databrew/betterwork/tree/master/documentation/Haiti%20Surveys) are the original word documents which were combined to created the pdf. 
