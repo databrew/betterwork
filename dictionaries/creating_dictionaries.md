@@ -26,15 +26,16 @@ We are building a web application for data coming from 4 surveys done on Haitian
 
 ## What do the columns mean?
 
-There are 8 columns in the dictionary
--`variable`: is the variable name as it appears in the original dataset.
--`variable_translation_short`: is *OUR* short translation of the variable.
--`variable_translation_long`: is *OUR* long translation of the variable.	
--`stata_label`: is the variable label associated with the variable name in stata. We won't be using this at all, but it might be helpful to see when searching for the corresponding questions in the survey documents.
-- `response`: is the coded response as it appears in the original dataset.
--`response_translation`: is *OUR* translation of the coded response.
--`survey`: is which of the 4 surveys this question is from.
--`comment`: is reserved for writing about issues, problems, etc.
+There are 8 columns in the dictionary:
+
+-`variable`: is the variable name as it appears in the original dataset.  
+-`variable_translation_short`: is *OUR* short translation of the variable.  
+-`variable_translation_long`: is *OUR* long translation of the variable.	  
+-`stata_label`: is the variable label associated with the variable name in stata. We won't be using this at all, but it can be very helpful when searching for the corresponding questions in the survey documents.  
+- `response`: is the coded response as it appears in the original dataset.  
+-`response_translation`: is *OUR* translation of the coded response.  
+-`survey`: is which of the 4 surveys this question is from.  
+-`comment`: is reserved for writing about issues, problems, etc.  
 
 ## Okay, what's the process?
 
