@@ -20,18 +20,20 @@ We are building a web application for data coming from 4 surveys done on Haitian
 - Do not modify the red columns (`variable`, `stata_label`, `response`).
 - Do not create additional rows or columns.
 - Do not modify the `response_translation` column if it's already filled out (some already are filled out with "Yes", "No", or NA).
+- Do not modify the `survey` column.
 - Fill out those columns which contain `_translation` in the name.
 - If there are issues (problems, missing data, etc.), write in the `comment` column.
 
 ## What do the columns mean?
 
-There are 7 columns in the dictionary
+There are 8 columns in the dictionary
 -`variable`: is the variable name as it appears in the original dataset.
 -`variable_translation_short`: is *OUR* short translation of the variable.
 -`variable_translation_long`: is *OUR* long translation of the variable.	
 -`stata_label`: is the variable label associated with the variable name in stata. We won't be using this at all, but it might be helpful to see when searching for the corresponding questions in the survey documents.
 - `response`: is the coded response as it appears in the original dataset.
--`response_translation`: is *OUR* translation of the coded response
+-`response_translation`: is *OUR* translation of the coded response.
+-`survey`: is which of the 4 surveys this question is from.
 -`comment`: is reserved for writing about issues, problems, etc.
 
 ## Okay, what's the process?
@@ -53,6 +55,6 @@ There are 7 columns in the dictionary
 - If workings simultaneously with someone else, it's advisable to work in different sections of the spreadsheet.
 - If you have any issues, put them in the `comment` field.
 - If you have major issues, write Joe.
-- Be creative in your searching. The variable names in the data don't align closely with those in the pdf (sometimes they're completely different), so you may have to make some inference based on order, similarity of names, the `stata_label`, etc.
+- Be creative in your searching. The variable names in the data don't align closely with those in the pdf (sometimes they're completely different), so you may have to make some inference based on order, which survey, similarity of names, and the `stata_label`, etc.
 - If you're not sure of something, but it's your "best guess" (based on order, intuition, etc.), then fill it in and place something in the `comment` file.d
 - You shouldn't need it, but just in case,  [here](https://github.com/databrew/betterwork/tree/master/documentation/Haiti%20Surveys) are the original word documents which were combined to created the pdf. 
