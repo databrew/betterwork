@@ -13,7 +13,7 @@ We are building a web application for data coming from 4 surveys done on Haitian
 ## What do we do?
 
 - Click [here](https://docs.google.com/spreadsheets/d/17-Kd9-a-X2JvVXql679LxI9QG3is1IHEFS-Fe9PlO9Y/edit?usp=sharing) to open a spreadsheet with a partially filled out dictionary. This is where we'll be working.
-- Click [here](https://github.com/databrew/betterwork/tree/master/documentation/Haiti%20Surveys) to open a folder which contains surveys. This is where we'll be getting the information to fill out the spreadsheet.
+- Click [here](https://github.com/databrew/betterwork/raw/master/documentation/Haiti%20Surveys/haiti_all.pdf) to get a pdf with all the original surveys.
 
 ## How do we fill out the spreadsheet?
 
@@ -38,8 +38,7 @@ There are 7 columns in the dictionary
 
 ### Translating the variables 
 
-- You've now opened the spreadsheet and the folder containing the original surveys (if not, go back up [here](https://github.com/databrew/betterwork/blob/master/dictionaries/creating_dictionaries.md#what-do-we-do)). 
-- For searchability, consider using the `haiti_all.pdf` document (so that you don't have to open a lot of different documents).
+- You've now opened the spreadsheet and the pdf of the original survey (if not, go back up [here](https://github.com/databrew/betterwork/blob/master/dictionaries/creating_dictionaries.md#what-do-we-do)). 
 - Go through line-by-line. Find the `variable` in question in the original survey documentation. Based on the survey question, create both `variable_translation_short` and `variable_translation_long` entries (use your judgement). These should be meaningful and correct grammatically (capitalizations, symbols, etc. allowed).
 
 ### Translating the responses
@@ -55,3 +54,4 @@ There are 7 columns in the dictionary
 - If you have any issues, put them in the `comment` field.
 - If you have major issues, write Joe.
 - Be creative in your searching. The variable names in the data don't align closely with those in the pdf, so you may have to make some inference based on order, similarity of names, etc.
+- You shouldn't need it, but just in case,  [here](https://github.com/databrew/betterwork/tree/master/documentation/Haiti%20Surveys) are the original word documents which were combined to created the pdf. 
