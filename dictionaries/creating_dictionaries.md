@@ -38,7 +38,7 @@ There are 7 columns in the dictionary
 
 ### Translating the variables 
 
-- You've now opened the spreadsheet and the folder containing the original surveys (if not, go back up to the "What do we do?" section). 
+- You've now opened the spreadsheet and the folder containing the original surveys (if not, go back up [here](https://github.com/databrew/betterwork/blob/master/dictionaries/creating_dictionaries.md#what-do-we-do)). 
 - For searchability, consider using the `haiti_all.pdf` document (so that you don't have to open a lot of different documents).
 - Go through line-by-line. Find the `variable` in question in the original survey documentation. Based on the survey question, create both `variable_translation_short` and `variable_translation_long` entries (use your judgement). These should be meaningful and correct grammatically (capitalizations, symbols, etc. allowed).
 
