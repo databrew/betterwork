@@ -6,16 +6,52 @@ _A step-by-step guide_
 
 Congratulations! You are part of an elite team tasked with creating a data dictionary for the World Bank's Better Work dashboard. 
 
+## Why are we doing this?
+
+We are building a web application for data coming from 4 surveys done on Haitian factories. All the data for the 4 surveys are combined into one dataset. The problem is that the survey names are coded (indecipherable), and so are the responses. This dictionary provides a meachine-readable document through which we can translate survey column names (variables) and responses to plain English.
+
 ## What do we do?
 
-Click [here](https://docs.google.com/spreadsheets/d/17-Kd9-a-X2JvVXql679LxI9QG3is1IHEFS-Fe9PlO9Y/edit?usp=sharing) to open a google sheet with a partially filled out dictionary. 
+- Click [here](https://docs.google.com/spreadsheets/d/17-Kd9-a-X2JvVXql679LxI9QG3is1IHEFS-Fe9PlO9Y/edit?usp=sharing) to open a spreadsheet with a partially filled out dictionary. This is where we'll be working.
+- Click [here](https://github.com/databrew/betterwork/tree/master/documentation/Haiti%20Surveys) to open a folder which contains surveys. This is where we'll be getting the information to fill out the spreadsheet.
+
+## How do we fill out the spreadsheet?
+
+- Do not modify the red columns (`variable`, `stata_label`, `response`).
+- Do not create additional rows or columns.
+- Do not modify the `response_translation` column if it's already filled out (some already are filled out with "Yes", "No", or NA).
+- Fill out those columns which contain `_translation` in the name.
+- If there are issues (problems, missing data, etc.), write in the `comment` column.
 
 ## What do the columns mean?
 
-There are 6 columns in the dictionary
--`variable`	
--`variable_translation_short`
--`variable_translation`	
--`stata_label	response`	
--`response_translation`	
--`comment`
+There are 7 columns in the dictionary
+-`variable`: is the variable name as it appears in the original dataset.
+-`variable_translation_short`: is *OUR* short translation of the variable.
+-`variable_translation_long`: is *OUR* long translation of the variable.	
+-`stata_label`: is the variable label associated with the variable name in stata. We won't be using this at all, but it might be helpful to see when searching for the corresponding questions in the survey documents.
+- `response`: is the coded response as it appears in the original dataset.
+-`response_translation`: is *OUR* translation of the coded response
+-`comment`: is reserved for writing about issues, problems, etc.
+
+## Okay, what's the process?
+
+### Translating the variables 
+
+- You've now opened the spreadsheet and the folder containing the original surveys (if not, go back up to the "What do we do?" section). 
+- For searchability, consider using the `haiti_all.pdf` document (so that you don't have to open a lot of different documents).
+- Go through line-by-line. Find the `variable` in question in the original survey documentation. Based on the survey question, create both `variable_translation_short` and `variable_translation_long` entries (use your judgement). These should be meaningful and correct grammatically (capitalizations, symbols, etc. allowed).
+
+### Translating the responses
+
+- Also fill out the `response_translation` field. 
+- There is one row for each variable-response pairing. So, for any given variable, the `variable_translation_short` and `variable_translation_long` fields will be identical, but the `response_translation` fields will not be. This means you'll use a lot of copy+paste for filling out `variable_translation_short` and `variable_translation_long`, but not for `response_translation`.
+- If the `response` is "<NUMERIC>", put nothing in the `response_translation` field.
+- If the `response` field for a variable is not "<NUMERIC>", but you think it should be, then delete all but one row for that variable, and replace the `response` field with "<NUMERIC>"
+
+## A few additiona comments
+
+- If workings simultaneously with someone else, it's advisable to work in different sections of the spreadsheet.
+- If you have any issues, put them in the `comment` field.
+- If you have major issues, write Joe.
+- Be creative in your searching. The variable names in the data don't align closely with those in the pdf, so you may have to make some inference based on order, similarity of names, etc.

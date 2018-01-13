@@ -2,7 +2,7 @@ library(dplyr)
 library(purrr)
 library(haven)
 # Read haiti data
-haiti <- read_dta('data/Haiti/Haiti_forApp_June2016.dta')
+haiti <- read_dta('../data/Haiti/Haiti_forApp_June2016.dta')
 n <- ncol(haiti)
 labels_list <- map(1:n, function(x) attr(haiti[[x]], "label") )
 # if a vector of character strings is preferable
@@ -42,6 +42,10 @@ for (i in 1:nrow(variable_dictionary)){
                                    ifelse(data$response == 1, 'Yes',
                                           data$response)))
   }
+  data$response_translation <-
+    ifelse(as.numeric(data$response) < 0,
+           NA,
+           data$response_translation)
   if(nrow(data) >= 20){
     data <- data[1,]
     data$response <- '<NUMERIC>'
@@ -55,8 +59,8 @@ for (i in 1:nrow(variable_dictionary)){
            stata_label = as.character(stata_label),
            response = as.character(response))
   dictionary_list[[i]] <- data
-  message(i)
-  print(head(data))
+  # print(head(data))
 }
 dictionary <- bind_rows(dictionary_list)
 readr::write_csv(dictionary, '~/Desktop/dict.csv')  
+# Convert negatives to NAs
