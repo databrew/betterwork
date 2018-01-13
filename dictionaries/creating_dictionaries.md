@@ -46,8 +46,8 @@ There are 7 columns in the dictionary
 
 - Also fill out the `response_translation` field. 
 - There is one row for each variable-response pairing. So, for any given variable, the `variable_translation_short` and `variable_translation_long` fields will be identical, but the `response_translation` fields will not be. This means you'll use a lot of copy+paste for filling out `variable_translation_short` and `variable_translation_long`, but not for `response_translation`.
-- If the `response` is "<NUMERIC>", put nothing in the `response_translation` field.
-- If the `response` field for a variable is not "<NUMERIC>", but you think it should be, then delete all but one row for that variable, and replace the `response` field with "<NUMERIC>"
+- If the `response` is `"<NUMERIC>"`, put nothing in the `response_translation` field.
+- If the `response` field for a variable is not `"<NUMERIC>"`, but you think it should be, then delete all but one row for that variable, and replace the `response` field with `"<NUMERIC>"`
 
 ## A few additiona comments
 
