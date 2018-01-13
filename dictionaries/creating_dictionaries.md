@@ -57,4 +57,4 @@ There are 8 columns in the dictionary
 - If you have major issues, write Joe.
 - Be creative in your searching. The variable names in the data don't align closely with those in the pdf (sometimes they're completely different), so you may have to make some inference based on order, which survey, similarity of names, and the `stata_label`, etc.
 - If you're not sure of something, but it's your "best guess" (based on order, intuition, etc.), then fill it in and place something in the `comment` file.d
-- You shouldn't need it, but just in case,  [here](https://github.com/databrew/betterwork/tree/master/documentation/Haiti%20Surveys) are the original word documents which were combined to created the pdf. 
+- The dataset includes data from 4 surveys. The variables go in the order of the pdf. If you are working on just one survey, and don't want to be searching the entire pdf, consider using the survey-specific documents [here](https://github.com/databrew/betterwork/tree/master/documentation/Haiti%20Surveys) - these are the original survey documents.
