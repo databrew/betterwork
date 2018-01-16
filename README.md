@@ -6,7 +6,7 @@ BetterWork application with the World Bank, International Labour Organisation an
 ## How to run the application
 
 - Clone this repository
-- Download the data.zip file [HERE](https://drive.google.com/open?id=1XQkvANbDUAKzlTsMv1nxZBQdBsvyBeeO) (authorized collaborators will have access).
+- Download the data.zip file [HERE](https://drive.google.com/file/d/1XQkvANbDUAKzlTsMv1nxZBQdBsvyBeeO/view?usp=sharing) (authorized collaborators will have access).
 - Extract the contents of the above zip file into this repo's `data` directory.
 - Run the application (it will be slow the first time, as it has to generate and save some data).
 
