@@ -151,3 +151,240 @@ read_key_indicators <- function(){
          x,
          envir = .GlobalEnv)
 }
+
+
+# Define function for plotting between 1 and 2 variables
+plotter <- function(df, variable = NULL){
+  
+  if(length(variable) < 1 |
+     length(variable) > 2){
+    message('Too many or too few variables')
+    return(NULL)
+  }
+  
+  # Keep only the columns in questoin
+  df <- df[,variable]
+  
+  # Get the types
+  classes <- unlist(lapply(df, class))
+  
+  # Ensure that the characters come before the numerics
+  df <- df[,order(classes)]
+  classes <- classes[order(classes)]
+
+  # Get number of variables to be plotted
+  n <- length(variable)
+  
+  # Rename the variables
+  names(df)[1] <- 'x'
+  if(n > 1){
+    names(df)[2] <- 'y'
+  }
+  if(n == 3){
+    names(df)[3] <- 'z'
+  }
+  
+  # Create list for return
+  out_list <- list()
+  # One variable
+  if(n == 1){
+    # Categorical
+    if(classes[1] == 'character'){
+      data <- df %>%
+        group_by(x) %>%
+        tally
+      names(data)[1] <- variable
+      plot <- ggplot(data = df,
+                     aes(x = x)) +
+        geom_bar(alpha = 0.6,
+                 fill = 'darkblue') +
+        labs(x = variable,
+             y = 'Count')
+    } else {
+      # Numeric
+      data <- df %>%
+        summarise(Variable = variable,
+                  min = min(x, na.rm = TRUE),
+                  IQR = paste0(quantile(x, c(0.25, 0.75), na.rm = TRUE), collapse = '-'),
+                  median = median(x, na.rm = TRUE),
+                  mean = mean(x, na.rm = TRUE),
+                  max = max(x, na.rm = TRUE),
+                  NAs = length(which(is.na(x))),
+                  n = n())
+      plot <- ggplot(data = df,
+                     aes(x = x)) +
+        geom_density(alpha = 0.6,
+                     fill = 'darkblue') +
+        labs(x = variable,
+             y = 'Density')
+    }
+    # Two variable
+  } else if(n == 2){
+    # Both are numeric if the first one is (due to ordering)
+    if(classes[1] == 'numeric'){
+      data <- df %>%
+        summarise(variable = 'x',
+                  min = min(x, na.rm = TRUE),
+                  IQR = paste0(quantile(x, c(0.25, 0.75), na.rm = TRUE), collapse = '-'),
+                  median = median(x, na.rm = TRUE),
+                  mean = mean(x, na.rm = TRUE),
+                  max = max(x, na.rm = TRUE),
+                  NAs = length(which(is.na(x))),
+                  n = n()) %>%
+        bind_rows(
+          df %>%
+            summarise(variable = 'y',
+                      min = min(y, na.rm = TRUE),
+                      IQR = paste0(quantile(y, c(0.25, 0.75), na.rm = TRUE), collapse = '-'),
+                      median = median(y, na.rm = TRUE),
+                      mean = mean(y, na.rm = TRUE),
+                      max = max(y, na.rm = TRUE),
+                      NAs = length(which(is.na(y))),
+                      n = n())
+        )
+      data$variable <- variable
+      plot <- ggplot(data = df,
+                     aes(x = x,
+                         y = y)) +
+        geom_point(alpha = 0.6) +
+        geom_smooth(alpha = 0.3) +
+        labs(x = variable[1],
+             y = variable[2])
+      # One categorical, one numeric
+    } else if(classes[1] == 'character' & classes[2] == 'numeric'){
+      data <- df %>%
+        group_by(x) %>%
+        summarise(variable = variable[2],
+                  min = min(y, na.rm = TRUE),
+                  IQR = paste0(quantile(y, c(0.25, 0.75), na.rm = TRUE), collapse = '-'),
+                  median = median(y, na.rm = TRUE),
+                  mean = mean(y, na.rm = TRUE),
+                  max = max(y, na.rm = TRUE),
+                  NAs = length(which(is.na(y))),
+                  n = n())
+      names(data)[1] <- variable[1]
+      
+      cols <- colorRampPalette(brewer.pal(n = 9, 'Spectral'))(length(unique(df$x)))
+      plot <- ggplot(data = df, aes(x = y)) + 
+        geom_density(aes(fill = factor(x), 
+                         group = factor(x)),
+                     alpha = 0.6) +
+        scale_fill_manual(name = variable[1],
+                          values = cols) +
+        labs(x = variable[2],
+             y = 'Density')
+       
+      # Both categorical
+    } else if(classes[1] == 'character' & classes[2] == 'character'){
+      data_simple <- 
+        df %>%
+            group_by(x,y) %>%
+            tally %>%
+        ungroup
+      data <- data_simple
+      names(data)[1:2] <- variable
+      cols <- colorRampPalette(brewer.pal(n = 9, 'Set1'))(length(unique(data_simple$y)))
+      plot <- 
+        ggplot(data = data_simple,
+               aes(x = x,
+                   group = y,
+                   fill = y,
+                   y = n)) +
+        geom_bar(stat = 'identity',
+                 position = 'dodge',
+                 alpha = 0.6) +
+        scale_fill_manual(name = variable[2],
+                          values = cols) +
+        labs(x = variable[1],
+             y = 'Count')
+      
+    }
+    
+  }
+  out_list$plot <- plot +
+    theme_world_bank() +
+    theme(axis.text.x = element_text(angle = 90)) +
+    theme(legend.position = 'bottom')
+  out_list$data <- data
+  return(out_list)
+}
+
+
+
+# Define function for printing nice html tables
+prettify <- function (the_table, remove_underscores_columns = TRUE, cap_columns = TRUE,
+                      cap_characters = TRUE, comma_numbers = TRUE, date_format = "%B %d, %Y",
+                      round_digits = 2, remove_row_names = TRUE, remove_line_breaks = TRUE,
+                      data_table = TRUE, nrows = 5, download_options = FALSE, no_scroll = TRUE){
+  column_names <- names(the_table)
+  the_table <- data.frame(the_table)
+  names(the_table) <- column_names
+  classes <- lapply(the_table, function(x) {
+    unlist(class(x))[1]
+  })
+  if (cap_columns) {
+    names(the_table) <- Hmisc::capitalize(names(the_table))
+  }
+  if (remove_underscores_columns) {
+    names(the_table) <- gsub("_", " ", names(the_table))
+  }
+  for (j in 1:ncol(the_table)) {
+    the_column <- the_table[, j]
+    the_class <- classes[j][1]
+    if (the_class %in% c("character", "factor")) {
+      if (cap_characters) {
+        the_column <- as.character(the_column)
+        the_column <- Hmisc::capitalize(the_column)
+      }
+      if (remove_line_breaks) {
+        the_column <- gsub("\n", " ", the_column)
+      }
+    }
+    else if (the_class %in% c("POSIXct", "Date")) {
+      the_column <- format(the_column, format = date_format)
+    }
+    else if (the_class %in% c("numeric", "integer")) {
+      the_column <- round(the_column, digits = round_digits)
+      if (comma_numbers) {
+        if(!grepl('year', tolower(names(the_table)[j]))){
+          the_column <- scales::comma(the_column)
+        }
+      }
+    }
+    the_table[, j] <- the_column
+  }
+  if (remove_row_names) {
+    row.names(the_table) <- NULL
+  }
+  if (data_table) {
+    if (download_options) {
+      if(no_scroll){
+        the_table <- DT::datatable(the_table, options = list(#pageLength = nrows,
+          scrollY = '300px', paging = FALSE,
+          dom = "Bfrtip", buttons = list("copy", "print",
+                                         list(extend = "collection", buttons = "csv",
+                                              text = "Download"))), rownames = FALSE, extensions = "Buttons")
+      } else {
+        the_table <- DT::datatable(the_table, options = list(pageLength = nrows,
+                                                             # scrollY = '300px', paging = FALSE,
+                                                             dom = "Bfrtip", buttons = list("copy", "print",
+                                                                                            list(extend = "collection", buttons = "csv",
+                                                                                                 text = "Download"))), rownames = FALSE, extensions = "Buttons")
+      }
+      
+    }
+    else {
+      if(no_scroll){
+        the_table <- DT::datatable(the_table, options = list(#pageLength = nrows,
+          scrollY = '300px', paging = FALSE,
+          columnDefs = list(list(className = "dt-right",
+                                 targets = 0:(ncol(the_table) - 1)))), rownames = FALSE)
+      } else {
+        the_table <- DT::datatable(the_table, options = list(pageLength = nrows,
+                                                             columnDefs = list(list(className = "dt-right",
+                                                                                    targets = 0:(ncol(the_table) - 1)))), rownames = FALSE)
+      }
+    }
+  }
+  return(the_table)
+}

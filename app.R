@@ -80,9 +80,13 @@ tabItem(
   fluidPage(
     fluidRow(column(6,
                     uiOutput('variable_basic_in')),
-             column(6,
-                    plotOutput('basic_plot'),
-                    DT::dataTableOutput('basic_table')))
+             column(6)),
+    fluidRow(
+      column(12,
+             plotOutput('basic_plot')),
+      column(12,
+             DT::dataTableOutput('basic_table'))
+    )
   )
 ),
 tabItem(
@@ -250,7 +254,8 @@ server <- function(input, output) {
       selectInput('basic_variable',
                   'Select variable(s) for analysis',
                   choices = names(x),
-                  multiple = TRUE)
+                  multiple = TRUE,
+                  selected = c('Sex'))
     } else {
       NULL
     }
@@ -258,24 +263,44 @@ server <- function(input, output) {
   
   output$basic_plot <- renderPlot({
     x <- input$basic_variable
-    if(is.null(x)){
+    d <- df()
+    if(is.null(x) | is.null(d)){
       return(NULL)
     } else {
-      ggplot() +
-        theme_world_bank() +
-        labs(title = 'THIS PLOT NEEDS TO BE DEVELOPED')
+      if(!length(x) %in% 1:2){
+        if(length(x) > 2){
+          ggplot() +
+            theme_world_bank() +
+            labs(title = 'Too many variables selected')
+        } else {
+          ggplot() +
+            theme_world_bank() +
+            labs(title = 'Select 1 or 2 variables at left')
+        }
+      } else {
+        g <- plotter(df = d,
+                     variable = x)
+        g$plot
+      }
     }
   })
   
   output$basic_table <- DT::renderDataTable({
     x <- input$basic_variable
-    if(is.null(x)){
+    d <- df()
+    if(is.null(x) | is.null(d)){
       return(NULL)
     } else {
-      DT::datatable(data.frame(a = 'This table needs',
-                               b = 'to be developed'))
+      if(!length(x) %in% 1:2){
+        DT::datatable(data_frame(' ' = 'Select one or two variables for analysis'), rownames = FALSE, options = list(dom = 't'))
+      } else {
+        g <- plotter(df = d,
+                     variable = x)
+        prettify(g$data,
+                 download_options = TRUE)
+      }
+      
     }
-    
   })
   
   }
