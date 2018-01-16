@@ -93,7 +93,7 @@ tabItem(
   tabName = 'advanced',
   fluidPage(
     fluidRow(column(6),
-             column(6))
+             column(6)) # THIS IS WHERE WE NEED TO BUILD MODELING INPUTS AND OUTPUTS
   )
 ),
 tabItem(
