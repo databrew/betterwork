@@ -112,13 +112,6 @@ render_key_indicators_plot <-
         ki %>%
         filter(`Indicator Name` %in% keepers)
       
-      # # Remove any which have fewer than 2 NAs
-      # ki <-
-      #   ki %>%
-      #   group_by(`Indicator Name`) %>%
-      #   mutate(flag = length(which(!is.na(value))) <2) %>%
-      #   filter(!flag) %>%
-      #   dplyr::select(-flag)
       bs <- 8
       if(!is.null(var)){
         ki <- ki %>%
