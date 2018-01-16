@@ -94,11 +94,11 @@ tabItem(
              column(4,
                     uiOutput('predictors')),
              column(4,
-                    uiOutput('models'))), 
+                    uiOutput('link'))), 
     fluidRow(
-      column(6,
+      column(12,
              plotOutput('model_plot')),
-      column(6,
+      column(12,
              DT::dataTableOutput('model_table'))
     )
     # THIS IS WHERE WE NEED TO BUILD MODELING INPUTS AND OUTPUTS
@@ -326,10 +326,12 @@ server <- function(input, output) {
   
   output$predictors <-renderUI({
     x <- df()
-    if(!is.null(x)){
+    x_sub <- x[, sapply(x, class) == 'character']
+    x_names <- colnames(x_sub) 
+    if(!is.null(x_names)){
       selectInput('predictors',
                   'Select predictor variable(s)',
-                  choices = names(x),
+                  choices = x_names,
                   multiple = TRUE,
                   selected = c('Sex'))
     } else {
@@ -338,15 +340,14 @@ server <- function(input, output) {
   })
   
   # MLR , OLR
-  output$model_type <-renderUI({
-    x <- df()
-    model_family <- c('gaussian', 'binomial', 'poisson', 'multinomial', 'Gamma', 'inverse')
-    if(!is.null(x)){
-      selectInput('models',
-                  'Select model type',
-                  choices = model_family,
+  output$link <-renderUI({
+    model_link_function <- c('logit', 'probit')
+    if(!is.null(model_link_function)){
+      selectInput('link',
+                  'Select the link function',
+                  choices = model_link_function,
                   multiple = FALSE,
-                  selected = c('gaussian'))
+                  selected = c('logit'))
     } else {
       NULL
     }
@@ -358,32 +359,29 @@ server <- function(input, output) {
     # get specificaitons 
     y_side <- input$outcome_var
     x_side <- input$predictors
-    mod_type <- input$model_type
+    link_function <- input$link
     d <- df()
-    
-    pred_sub <- as.data.frame(d[, colnames(d) %in% x_side])
+    d_sub <- d[, sapply(x, class) == 'character']
+    pred_sub <- as.data.frame(d_sub[, colnames(d_sub) %in% x_side])
     pred_sub$outcome_y <- unlist(d[, y_side])
     pred_sub <- pred_sub[complete.cases(pred_sub),]
+
+    # change to factor
+    pred_sub <-  as.data.frame(apply(pred_sub, 2, function(x) as.factor(x)), stringsAsFactors = T)
+  
     
-    pred_sub$Sex <- as.factor(pred_sub$Sex)
-    pred_sub$outcome_y <- as.factor(pred_sub$outcome_y)
+    mod_results <- as.data.frame(tidy(glm(outcome_y~ ., family = binomial(link = link_function), data = pred_sub)))
     
-    glm(outcome_y~ ., family = mod_type, data = pred_sub)
-    
-    #
-    if(is.null(x) | is.null(d)){
+  
+    if(is.null(mod_results)){
       return(NULL)
     } else {
-      if(!length(x) %in% 1:2){
-        DT::datatable(data_frame(' ' = 'Select one or two variables for analysis'), rownames = FALSE, options = list(dom = 't'))
-      } else {
-        g <- plotter(df = d,
-                     variable = x)
-        prettify(g$data,
-                 download_options = TRUE)
-      }
-      
+        mod_results
     }
+  })
+  
+  output$mytable = DT::renderDataTable({
+    mtcars
   })
   
   

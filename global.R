@@ -9,6 +9,7 @@ library(haven)
 library(shinycssloaders)
 library(leaflet)
 library(Hmisc)
+library(broom)
 
 if('prepared_data.RData' %in% dir()){
   load('prepared_data.RData')
