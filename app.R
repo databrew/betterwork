@@ -1,5 +1,5 @@
-source('global.R')
 source('functions.R')
+source('global.R')
 source('theme.R')
 
 header <- dashboardHeader(title="Better Work Research Portal")
@@ -89,8 +89,19 @@ tabItem(
 tabItem(
   tabName = 'advanced',
   fluidPage(
-    fluidRow(column(6),
-             column(6)) # THIS IS WHERE WE NEED TO BUILD MODELING INPUTS AND OUTPUTS
+    fluidRow(column(4,
+                    uiOutput('outcome_var')),
+             column(4,
+                    uiOutput('predictors')),
+             column(4,
+                    uiOutput('models'))), 
+    fluidRow(
+      column(6,
+             plotOutput('model_plot')),
+      column(6,
+             DT::dataTableOutput('model_table'))
+    )
+    # THIS IS WHERE WE NEED TO BUILD MODELING INPUTS AND OUTPUTS
   )
 ),
 tabItem(
@@ -123,23 +134,23 @@ tabItem(
              h2('Responses dictionary'),
              dataTableOutput('complete_dictionary_table'))
     )),
-fluidPage(
-  fluidRow(
-    div(img(src='logo_clear.png', align = "center"), style="text-align: center;"),
-    h4('Built in partnership with ',
-       a(href = 'http://databrew.cc',
-         target='_blank', 'Databrew'),
-       align = 'center'),
-    p('Empowering research and analysis through collaborative data science.', align = 'center'),
-    div(a(actionButton(inputId = "email", label = "info@databrew.cc", 
-                       icon = icon("envelope", lib = "font-awesome")),
-          href="mailto:info@databrew.cc",
-          align = 'center')), 
-    style = 'text-align:center;'
+  fluidPage(
+    fluidRow(
+      div(img(src='logo_clear.png', align = "center"), style="text-align: center;"),
+      h4('Built in partnership with ',
+         a(href = 'http://databrew.cc',
+           target='_blank', 'Databrew'),
+         align = 'center'),
+      p('Empowering research and analysis through collaborative data science.', align = 'center'),
+      div(a(actionButton(inputId = "email", label = "info@databrew.cc", 
+                         icon = icon("envelope", lib = "font-awesome")),
+            href="mailto:info@databrew.cc",
+            align = 'center')), 
+      style = 'text-align:center;'
+    )
   )
 )
-)
-)
+  )
 )
 
 # UI
@@ -300,7 +311,109 @@ server <- function(input, output) {
     }
   })
   
-  }
+  output$outcome_var <- renderUI({
+    x <- df()
+    if(!is.null(x)){
+      selectInput('outcome_var',
+                  'Select variable interest',
+                  choices = names(x),
+                  multiple = FALSE,
+                  selected = c('Injured at factory'))
+    } else {
+      NULL
+    }
+  })
+  
+  output$predictors <-renderUI({
+    x <- df()
+    if(!is.null(x)){
+      selectInput('predictors',
+                  'Select predictor variable(s)',
+                  choices = names(x),
+                  multiple = TRUE,
+                  selected = c('Sex'))
+    } else {
+      NULL
+    }
+  })
+  
+  # MLR , OLR
+  output$model_type <-renderUI({
+    x <- df()
+    model_family <- c('gaussian', 'binomial', 'poisson', 'multinomial', 'Gamma', 'inverse')
+    if(!is.null(x)){
+      selectInput('models',
+                  'Select model type',
+                  choices = model_family,
+                  multiple = FALSE,
+                  selected = c('gaussian'))
+    } else {
+      NULL
+    }
+  })
+  
+  output$model_table <- DT::renderDataTable({
+    
+    
+    # get specificaitons 
+    y_side <- input$outcome_var
+    x_side <- input$predictors
+    mod_type <- input$model_type
+    d <- df()
+    
+    pred_sub <- as.data.frame(d[, colnames(d) %in% x_side])
+    pred_sub$outcome_y <- unlist(d[, y_side])
+    pred_sub <- pred_sub[complete.cases(pred_sub),]
+    
+    pred_sub$Sex <- as.factor(pred_sub$Sex)
+    pred_sub$outcome_y <- as.factor(pred_sub$outcome_y)
+    
+    glm(outcome_y~ ., family = mod_type, data = pred_sub)
+    
+    #
+    if(is.null(x) | is.null(d)){
+      return(NULL)
+    } else {
+      if(!length(x) %in% 1:2){
+        DT::datatable(data_frame(' ' = 'Select one or two variables for analysis'), rownames = FALSE, options = list(dom = 't'))
+      } else {
+        g <- plotter(df = d,
+                     variable = x)
+        prettify(g$data,
+                 download_options = TRUE)
+      }
+      
+    }
+  })
+  
+  
+  output$model_plot <- renderPlot({
+    x <- input$basic_variable
+    d <- df()
+    if(is.null(x) | is.null(d)){
+      return(NULL)
+    } else {
+      if(!length(x) %in% 1:2){
+        if(length(x) > 2){
+          ggplot() +
+            theme_world_bank() +
+            labs(title = 'Too many variables selected')
+        } else {
+          ggplot() +
+            theme_world_bank() +
+            labs(title = 'Select 1 or 2 variables at left')
+        }
+      } else {
+        g <- plotter(df = d,
+                     variable = x)
+        g$plot
+      }
+    }
+  })
+  
+  
+  
+}
 
 
 shinyApp(ui, server)
