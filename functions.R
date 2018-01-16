@@ -60,16 +60,15 @@ render_map <-
         }
       }
       
-      # simplify the shape # (no longer doing for rgeos reasons)
-      shp <- shp
-      # thinnedSpatialPoly(SP = shp,
-      #                  minarea = 0,
-      #                  tolerance = 1,
-      #                  topologyPreserve = TRUE)
+      # Simplify the shape
+      shp <- thinnedSpatialPoly(SP = shp,
+                       minarea = 0,
+                       tolerance = 1,
+                       topologyPreserve = TRUE)
       
       if(leaflet){
         m <- leaflet(shp) %>%
-          addProviderTiles("Stamen.TonerLite") %>%
+          addProviderTiles("Stamen.Watercolor") %>%
           addPolygons(
             stroke = FALSE, fillOpacity = 0.5, smoothFactor = 0.5,
             # color = ~colorQuantile("YlOrRd", moz$ID_1)(ID_1)
