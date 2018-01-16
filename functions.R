@@ -63,12 +63,12 @@ render_map <-
       # Simplify the shape
       shp <- thinnedSpatialPoly(SP = shp,
                        minarea = 0,
-                       tolerance = 1,
+                       tolerance = 0.2,
                        topologyPreserve = TRUE)
       
       if(leaflet){
         m <- leaflet(shp) %>%
-          addProviderTiles("Stamen.Watercolor") %>%
+          addProviderTiles("CartoDB.DarkMatterNoLabels") %>%
           addPolygons(
             stroke = FALSE, fillOpacity = 0.5, smoothFactor = 0.5,
             # color = ~colorQuantile("YlOrRd", moz$ID_1)(ID_1)
