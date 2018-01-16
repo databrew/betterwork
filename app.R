@@ -77,11 +77,20 @@ tabItem(
 ),
 tabItem(
   tabName = 'basic',
-  fluidPage()
+  fluidPage(
+    fluidRow(column(6,
+                    uiOutput('variable_basic_in')),
+             column(6,
+                    plotOutput('basic_plot'),
+                    DT::dataTableOutput('basic_table')))
+  )
 ),
 tabItem(
   tabName = 'advanced',
-  fluidPage()
+  fluidPage(
+    fluidRow(column(6),
+             column(6))
+  )
 ),
 tabItem(
   tabName = 'about',
@@ -234,6 +243,40 @@ server <- function(input, output) {
                     width = '200%')
       }
     })
+  
+  output$variable_basic_in <- renderUI({
+    x <- df()
+    if(!is.null(x)){
+      selectInput('basic_variable',
+                  'Select variable(s) for analysis',
+                  choices = names(x),
+                  multiple = TRUE)
+    } else {
+      NULL
+    }
+  })
+  
+  output$basic_plot <- renderPlot({
+    x <- input$basic_variable
+    if(is.null(x)){
+      return(NULL)
+    } else {
+      ggplot() +
+        theme_world_bank() +
+        labs(title = 'THIS PLOT NEEDS TO BE DEVELOPED')
+    }
+  })
+  
+  output$basic_table <- DT::renderDataTable({
+    x <- input$basic_variable
+    if(is.null(x)){
+      return(NULL)
+    } else {
+      DT::datatable(data.frame(a = 'This table needs',
+                               b = 'to be developed'))
+    }
+    
+  })
   
   }
 
