@@ -99,7 +99,13 @@ tabItem(
       column(12,
              plotOutput('model_plot')),
       column(12,
-             DT::dataTableOutput('model_table'))
+             DT::dataTableOutput('model_table')),
+      column(12,
+             h1('Methodology'),
+             helpText('For outcome variables with two levels, we estimate a binomial logistic regression,
+                       or a linear probability model (with robust stand errors). 
+                       For outcome variables with more than two levles, 
+                       we estimate a multinomial logistic model. This functionality is still under construction.'))
     )
     # THIS IS WHERE WE NEED TO BUILD MODELING INPUTS AND OUTPUTS
   )
@@ -434,9 +440,7 @@ server <- function(input, output) {
               DT::datatable(data_frame(' ' = 'Pick an outcome variable with 2 or more levels'), rownames = FALSE, options = list(dom = 't'))
             }
             
-            
           }
-          
           
         }
         
@@ -485,8 +489,12 @@ server <- function(input, output) {
               
               mod_results[, 2:ncol(mod_results)] <- apply(mod_results[, 2:ncol(mod_results)], 2, function(x) round(x, 3))
               
-              p <- ggplot(mod_results, aes(term, estimate)) + geom_bar(stat = 'identity') +
-                geom_errorbar(aes(ymin=estimate-std.error, ymax=estimate+std.error), width=.1) 
+              cols <- colorRampPalette(brewer.pal(n = 9, 'Spectral'))(length(unique(mod_results$term)))
+              p <- ggplot(mod_results, aes(term, estimate)) + geom_bar(stat = 'identity',  alpha = 0.7) +
+                xlab('') + ylab('') +
+                scale_fill_discrete(name = '') +
+                geom_errorbar(aes(ymin=estimate-std.error, ymax=estimate+std.error), width=.1) +
+                theme_world_bank()
               
               return(p)
               
@@ -514,7 +522,10 @@ server <- function(input, output) {
               mod_results <- melt(mod_results, id.vars = 'outcome')
               
               p <- ggplot(mod_results, aes(outcome, value, fill = variable)) + 
-                geom_bar(stat = 'identity', position = 'dodge') + theme_light()
+                geom_bar(stat = 'identity', position = 'dodge',  alpha = 0.7) + theme_light() + 
+                xlab('') + ylab('') +
+                scale_fill_discrete(name = '') +
+                theme_world_bank()
               
               return(p)
               
@@ -530,8 +541,11 @@ server <- function(input, output) {
               
               mod_results[, 2:ncol(mod_results)] <- apply(mod_results[, 2:ncol(mod_results)], 2, function(x) round(x, 3))
               
-              p <- ggplot(mod_results, aes(term, estimate)) + geom_bar(stat = 'identity') +
-                geom_errorbar(aes(ymin=estimate-std.error, ymax=estimate+std.error), width=.1) 
+              p <- ggplot(mod_results, aes(term, estimate)) + geom_bar(stat = 'identity', alpha = 0.7) +
+                geom_errorbar(aes(ymin=estimate-std.error, ymax=estimate+std.error), width=.1)  +
+                xlab('') + ylab('') + 
+                scale_fill_discrete(name = '') +
+                theme_world_bank()
               
               if(is.null(p)){
                 return(NULL)
