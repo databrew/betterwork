@@ -94,7 +94,7 @@ tabItem(
              column(4,
                     uiOutput('predictors')),
              column(4,
-                    uiOutput('link'))), 
+                    uiOutput('model_type'))), 
     fluidRow(
       column(12,
              plotOutput('model_plot')),
@@ -327,6 +327,9 @@ server <- function(input, output) {
   output$predictors <-renderUI({
     x <- df()
     x_sub <- x[, sapply(x, class) == 'character']
+    
+    bad_var_flag <- apply(x_sub, 2, function(x) length(unique(x)) < 3)
+    x_sub <- x_sub[ , !bad_var_flag]
     x_names <- colnames(x_sub) 
     if(!is.null(x_names)){
       selectInput('predictors',
@@ -340,76 +343,202 @@ server <- function(input, output) {
   })
   
   # MLR , OLR
-  output$link <-renderUI({
-    model_link_function <- c('logit', 'probit')
-    if(!is.null(model_link_function)){
-      selectInput('link',
-                  'Select the link function',
-                  choices = model_link_function,
+  output$model_type <-renderUI({
+    model_type <- c('Logistic', 'Linear probability model')
+    if(!is.null(model_type)){
+      selectInput('model_type',
+                  'Select the model',
+                  choices = model_type,
                   multiple = FALSE,
-                  selected = c('logit'))
+                  selected = c('Logistic'))
     } else {
       NULL
     }
   })
   
+  
   output$model_table <- DT::renderDataTable({
-    
-    
     # get specificaitons 
     y_side <- input$outcome_var
     x_side <- input$predictors
-    link_function <- input$link
+    model_type <- input$model_type
     d <- df()
-    d_sub <- d[, sapply(x, class) == 'character']
-    pred_sub <- as.data.frame(d_sub[, colnames(d_sub) %in% x_side])
-    pred_sub$outcome_y <- unlist(d[, y_side])
-    pred_sub <- pred_sub[complete.cases(pred_sub),]
-
-    # change to factor
-    pred_sub <-  as.data.frame(apply(pred_sub, 2, function(x) as.factor(x)), stringsAsFactors = T)
-  
     
-    mod_results <- as.data.frame(tidy(glm(outcome_y~ ., family = binomial(link = link_function), data = pred_sub)))
-    
-  
-    if(is.null(mod_results)){
+    if(is.null(y_side) | is.null(x_side) | is.null(model_type) | is.null(d)) {
       return(NULL)
     } else {
-        mod_results
-    }
-  })
-  
-  output$mytable = DT::renderDataTable({
-    mtcars
-  })
-  
-  
-  output$model_plot <- renderPlot({
-    x <- input$basic_variable
-    d <- df()
-    if(is.null(x) | is.null(d)){
-      return(NULL)
-    } else {
-      if(!length(x) %in% 1:2){
-        if(length(x) > 2){
-          ggplot() +
-            theme_world_bank() +
-            labs(title = 'Too many variables selected')
-        } else {
-          ggplot() +
-            theme_world_bank() +
-            labs(title = 'Select 1 or 2 variables at left')
-        }
+      d_sub <- d[, sapply(d, class) == 'character']
+      pred_sub <- as.data.frame(d_sub[, colnames(d_sub) %in% x_side])
+      pred_sub$outcome_y <- unlist(d[, y_side])
+      pred_sub <- pred_sub[complete.cases(pred_sub),]
+      
+      if (nrow(pred_sub) < 20){
+        DT::datatable(data_frame(' ' = 'Too many NAs for this variable combination'), rownames = FALSE, options = list(dom = 't'))
       } else {
-        g <- plotter(df = d,
-                     variable = x)
-        g$plot
+        if(model_type == 'Linear probability model') {
+          
+          if(length(unique(pred_sub$outcome_y)) == 2) {
+            unique_levles <-  unique(pred_sub$outcome_y)
+            pred_sub$outcome_y[pred_sub$outcome_y == unique_levles[1]] <- 0 
+            pred_sub$outcome_y[pred_sub$outcome_y == unique_levles[2]] <- 1
+            
+            # change to factor
+            # pred_sub <-  as.data.frame(apply(pred_sub, 2, function(x) as.factor(x)), stringsAsFactors = T)
+            mod_results <- as.data.frame(broom::tidy(lm(outcome_y~ ., data = pred_sub)))
+            
+            mod_results[, 2:ncol(mod_results)] <- apply(mod_results[, 2:ncol(mod_results)], 2, function(x) round(x, 3))
+            
+
+          } else {
+            DT::datatable(data_frame(' ' = 'The linear probability model requires an outcome with 2 categories'), rownames = FALSE, options = list(dom = 't'))
+            
+          }
+          
+        } else if(model_type == 'Logistic') {
+          # change to factor
+          pred_sub <-  as.data.frame(apply(pred_sub, 2, function(x) as.factor(x)), stringsAsFactors = T)
+          # get x_side length
+          if(length(unique(pred_sub$outcome_y)) > 2) {
+            mod_summary<- multinom(outcome_y ~., data = pred_sub)
+            var_coef <- round(summary(mod_summary)$coefficients, 3)
+            var_std <- round(summary(mod_summary)$standard.errors, 3)
+            z <- var_coef[, 2:(length(x_side) +1)]/var_std[, 2:(length(x_side) +1)]
+            # wald test to obtain pvalue
+            p <- round((as.data.frame((1 - pnorm(abs(z), 0 , 1))*2)), 2)
+            colnames(p)[1:length(x_side)] <- paste0(x_side, '_',rep.int('p_value', length(x_side)))
+            odds_ratio <- round(exp(var_coef),2)
+            mod_results <- as.data.frame(cbind(odds_ratio, p_value = p))
+            
+            # 
+            # if(is.null(mod_results)){
+            #   return(NULL)
+            # } else {
+            #   mod_results
+            # }
+            # 
+          } else if(length(unique(pred_sub$outcome_y)) == 2) {
+            mod_results <- as.data.frame(broom::tidy(glm(outcome_y~ ., family = binomial(link = 'logit'), data = pred_sub)))
+            
+            mod_results[, 2:ncol(mod_results)] <- apply(mod_results[, 2:ncol(mod_results)], 2, function(x) round(x, 3))
+            
+            if(is.null(mod_results)){
+              return(NULL)
+            } else {
+              mod_results
+            }
+          } else {
+            DT::datatable(data_frame(' ' = 'Pick an outcome variable with 2 or more levels'), rownames = FALSE, options = list(dom = 't'))
+          }
+          
+          
+        }
+        
+      
       }
+      
     }
+    
   })
   
   
+  # 
+  output$model_plot <- renderPlot({
+    # get specificaitons 
+    y_side <- input$outcome_var
+    x_side <- input$predictors
+    model_type <- input$model_type
+    d <- df()
+  
+    
+    if(is.null(y_side) | is.null(x_side) | is.null(model_type) | is.null(d)) {
+      return(NULL)
+    } else {
+      d_sub <- d[, sapply(d, class) == 'character']
+      pred_sub <- as.data.frame(d_sub[, colnames(d_sub) %in% x_side])
+      pred_sub$outcome_y <- unlist(d[, y_side])
+      pred_sub <- pred_sub[complete.cases(pred_sub),]
+      
+
+      if(nrow(pred_sub) < 20){
+        DT::datatable(data_frame(' ' = 'Too many NAs for this variable combination'), rownames = FALSE, options = list(dom = 't'))
+      } else {
+        if(model_type == 'Linear probability model') {
+          
+          if(length(unique(pred_sub$outcome_y)) == 2) {
+            unique_levles <-  unique(pred_sub$outcome_y)
+            pred_sub$outcome_y[pred_sub$outcome_y == unique_levles[1]] <- 0 
+            pred_sub$outcome_y[pred_sub$outcome_y == unique_levles[2]] <- 1
+            
+            # change to factor
+            # pred_sub <-  as.data.frame(apply(pred_sub, 2, function(x) as.factor(x)), stringsAsFactors = T)
+            mod_results <- as.data.frame(broom::tidy(lm(outcome_y~ ., data = pred_sub)))
+            
+            mod_results[, 2:ncol(mod_results)] <- apply(mod_results[, 2:ncol(mod_results)], 2, function(x) round(x, 3))
+            
+            p <- ggplot(mod_results, aes(term, estimate)) + geom_bar(stat = 'identity') +
+              geom_errorbar(aes(ymin=estimate-std.error, ymax=estimate+std.error), width=.1) 
+            
+            return(p)
+              
+          } else {
+            DT::datatable(data_frame(' ' = 'The linear probability model requires an outcome with 2 categories'), rownames = FALSE, options = list(dom = 't'))
+            
+          }
+          
+        } else if(model_type == 'Logistic') {
+          # change to factor
+          pred_sub <-  as.data.frame(apply(pred_sub, 2, function(x) as.factor(x)), stringsAsFactors = T)
+          # get x_side length
+          if(length(unique(pred_sub$outcome_y)) > 2) {
+            mod_summary<- multinom(outcome_y ~., data = pred_sub)
+            var_coef <- round(summary(mod_summary)$coefficients, 3)
+            var_std <- round(summary(mod_summary)$standard.errors, 3)
+            z <- var_coef[, 2:(length(x_side) +1)]/var_std[, 2:(length(x_side) +1)]
+            # wald test to obtain pvalue
+            p <- round((as.data.frame((1 - pnorm(abs(z), 0 , 1))*2)), 2)
+            colnames(p)[1:length(x_side)] <- paste0(x_side, '_',rep.int('p_value', length(x_side)))
+            odds_ratio <- round(exp(var_coef),2)
+            mod_results <- as.data.frame(cbind(odds_ratio, p_value = p))
+            mod_results$outcome <- rownames(mod_results)
+            
+            mod_results <- melt(mod_results, id.vars = 'outcome')
+            
+            p <- ggplot(mod_results, aes(outcome, value, fill = variable)) + 
+              geom_bar(stat = 'identity', position = 'dodge') + theme_light()
+            
+            return(p)
+            
+            # 
+            # if(is.null(mod_results)){
+            #   return(NULL)
+            # } else {
+            #   mod_results
+            # }
+            # 
+          } else if(length(unique(pred_sub$outcome_y)) == 2) {
+            mod_results <- as.data.frame(broom::tidy(glm(outcome_y~ ., family = binomial(link = 'logit'), data = pred_sub)))
+            
+            mod_results[, 2:ncol(mod_results)] <- apply(mod_results[, 2:ncol(mod_results)], 2, function(x) round(x, 3))
+            
+            p <- ggplot(mod_results, aes(term, estimate)) + geom_bar(stat = 'identity') +
+              geom_errorbar(aes(ymin=estimate-std.error, ymax=estimate+std.error), width=.1) 
+            
+            if(is.null(p)){
+              return(NULL)
+            } else {
+              p
+            }
+          } else {
+            DT::datatable(data_frame(' ' = 'Pick an outcome variable with 2 or more levels'), rownames = FALSE, options = list(dom = 't'))
+          }
+          
+        }
+        
+      }
+      
+    }
+    
+  })
   
 }
 
