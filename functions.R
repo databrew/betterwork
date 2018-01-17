@@ -62,9 +62,9 @@ render_map <-
       
       # Simplify the shape
       shp <- thinnedSpatialPoly(SP = shp,
-                       minarea = 0,
-                       tolerance = 0.2,
-                       topologyPreserve = TRUE)
+                                minarea = 0,
+                                tolerance = 0.2,
+                                topologyPreserve = TRUE)
       
       if(leaflet){
         m <- leaflet(shp) %>%
@@ -138,7 +138,7 @@ render_key_indicators_plot <-
 
 #' Read key indicators
 read_key_indicators <- function(){
-  x <- read_csv('key_indicators/key_indicators.csv')
+  x <- readr::read_csv('key_indicators/key_indicators.csv')
   # Keep only recent
   x <- x %>%
     filter(year >= 2005)
@@ -171,7 +171,7 @@ plotter <- function(df, variable = NULL){
   # Ensure that the characters come before the numerics
   df <- df[,order(classes)]
   classes <- classes[order(classes)]
-
+  
   # Get number of variables to be plotted
   n <- length(variable)
   
@@ -273,13 +273,13 @@ plotter <- function(df, variable = NULL){
                           values = cols) +
         labs(x = variable[2],
              y = 'Density')
-       
+      
       # Both categorical
     } else if(classes[1] == 'character' & classes[2] == 'character'){
       data_simple <- 
         df %>%
-            group_by(x,y) %>%
-            tally %>%
+        group_by(x,y) %>%
+        tally %>%
         ungroup
       data <- data_simple
       names(data)[1:2] <- variable

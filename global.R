@@ -9,6 +9,10 @@ library(haven)
 library(shinycssloaders)
 library(leaflet)
 library(Hmisc)
+library(nnet)
+library(broom)
+library(sandwich)
+library(reshape2)
 
 if('prepared_data.RData' %in% dir()){
   load('prepared_data.RData')
