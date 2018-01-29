@@ -382,6 +382,8 @@ server <- function(input, output) {
               
               mod_results[, 2:ncol(mod_results)] <- apply(mod_results[, 2:ncol(mod_results)], 2, function(x) round(x, 3))
               
+              prettify(mod_results,
+                       download_options = TRUE)
               
             } else {
               DT::datatable(data_frame(' ' = 'The linear probability model requires an outcome with 2 categories'), rownames = FALSE, options = list(dom = 't'))
@@ -403,6 +405,10 @@ server <- function(input, output) {
               odds_ratio <- round(exp(var_coef),2)
               mod_results <- as.data.frame(cbind(odds_ratio, p_value = p))
               
+              
+              prettify(mod_results,
+                       download_options = TRUE)
+              
               # 
               # if(is.null(mod_results)){
               #   return(NULL)
@@ -415,10 +421,14 @@ server <- function(input, output) {
               
               mod_results[, 2:ncol(mod_results)] <- apply(mod_results[, 2:ncol(mod_results)], 2, function(x) round(x, 3))
               
+              
+              
               if(is.null(mod_results)){
                 return(NULL)
               } else {
-                mod_results
+                
+                prettify(mod_results,
+                         download_options = TRUE)
               }
             } else {
               DT::datatable(data_frame(' ' = 'Pick an outcome variable with 2 or more levels'), rownames = FALSE, options = list(dom = 't'))
