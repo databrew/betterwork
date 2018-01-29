@@ -104,7 +104,7 @@ tabItem(
              h1('Methodology'),
              helpText('For outcome variables with two levels, we estimate a binomial logistic regression,
                        or a linear probability model (with robust stand errors). 
-                       For outcome variables with more than two levels, 
+                       For outcome variables with more than two levles, 
                        we estimate a multinomial logistic model. This functionality is still under construction.'))
     )
     # THIS IS WHERE WE NEED TO BUILD MODELING INPUTS AND OUTPUTS
@@ -139,7 +139,23 @@ tabItem(
              dataTableOutput('simple_dictionary_table'),
              h2('Responses dictionary'),
              dataTableOutput('complete_dictionary_table'))
-    )))
+    )),
+  fluidPage(
+    fluidRow(
+      div(img(src='logo_clear.png', align = "center"), style="text-align: center;"),
+      h4('Built in partnership with ',
+         a(href = 'http://databrew.cc',
+           target='_blank', 'Databrew'),
+         align = 'center'),
+      p('Empowering research and analysis through collaborative data science.', align = 'center'),
+      div(a(actionButton(inputId = "email", label = "info@databrew.cc", 
+                         icon = icon("envelope", lib = "font-awesome")),
+            href="mailto:info@databrew.cc",
+            align = 'center')), 
+      style = 'text-align:center;'
+    )
+  )
+)
   )
 )
 
@@ -382,8 +398,6 @@ server <- function(input, output) {
               
               mod_results[, 2:ncol(mod_results)] <- apply(mod_results[, 2:ncol(mod_results)], 2, function(x) round(x, 3))
               
-              prettify(mod_results,
-                       download_options = TRUE)
               
             } else {
               DT::datatable(data_frame(' ' = 'The linear probability model requires an outcome with 2 categories'), rownames = FALSE, options = list(dom = 't'))
@@ -405,10 +419,6 @@ server <- function(input, output) {
               odds_ratio <- round(exp(var_coef),2)
               mod_results <- as.data.frame(cbind(odds_ratio, p_value = p))
               
-              
-              prettify(mod_results,
-                       download_options = TRUE)
-              
               # 
               # if(is.null(mod_results)){
               #   return(NULL)
@@ -421,22 +431,24 @@ server <- function(input, output) {
               
               mod_results[, 2:ncol(mod_results)] <- apply(mod_results[, 2:ncol(mod_results)], 2, function(x) round(x, 3))
               
-              
-              
               if(is.null(mod_results)){
                 return(NULL)
               } else {
-                
-                prettify(mod_results,
-                         download_options = TRUE)
+                mod_results
               }
             } else {
               DT::datatable(data_frame(' ' = 'Pick an outcome variable with 2 or more levels'), rownames = FALSE, options = list(dom = 't'))
             }
+            
           }
+          
         }
+        
       }
-    }   
+      
+      }
+      
+          
   })
   
   
