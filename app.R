@@ -38,13 +38,8 @@ body <- dashboardBody(
         h3('Welcome!'),
         fluidRow(
           column(6,
-                 
-                 p(paste0("Welcome to the 'Better Work Research Portal', a collaboration between Better Work, Tufts University, and the World Bank Group.
-                          This app is intended to help researchers to explore the results of the 5 country 'Better Work' survey.
-                          To get started, select a country (right), then choose visit the 'Advanced'' analysis (for users familiar with R) or the 'Basic' analysis tab (for all users).")),
-                 
                  p(paste0('Welcome to the "Better Work Research Portal", a collaboration ',
-                          'between Better Work, Tufts University, and the World Bank. ')),
+                          'between Better Work, Tufts University, and the World Bank Group.')),
                  p(paste0('This app is intended to help researchers to explore ',
                           'the results of the five-country Better Work survey.')),
                  p(a("Betterwork homepage",     href="https://betterwork.org/")),
@@ -134,7 +129,7 @@ tabItem(
                       'As with the survey documentation,',
                       'if you have multiple countries selected,',
                       'data will be restricted only to the country',
-                      ' which appears first alphabetically.'),
+                      ' that appears first alphabetically.'),
              h2('Headers dictionary'),
              dataTableOutput('simple_dictionary_table'),
              h2('Responses dictionary'),
