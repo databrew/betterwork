@@ -357,7 +357,7 @@ server <- function(input, output) {
       pred_sub$outcome_y <- unlist(d[, y_side])
       pred_sub <- pred_sub[complete.cases(pred_sub),]
       
-      if(apply(pred_sub, 2, function(x) length(unique(x)) <2) & ncol(pred_sub) >1) {
+      if(any(apply(pred_sub, 2, function(x) length(unique(x)) <2) & ncol(pred_sub) >1)) {
         DT::datatable(data_frame(' ' = 'The combination yields a factor with one level'), rownames = FALSE, options = list(dom = 't'))
         
       } else {
@@ -452,7 +452,7 @@ server <- function(input, output) {
       pred_sub$outcome_y <- unlist(d[, y_side])
       pred_sub <- pred_sub[complete.cases(pred_sub),]
       
-      if(apply(pred_sub, 2, function(x) length(unique(x)) <2) & ncol(pred_sub) >1) {
+      if(any(apply(pred_sub, 2, function(x) length(unique(x)) <2) & ncol(pred_sub) >1)) {
         DT::datatable(data_frame(' ' = 'The combination yields a factor with one level'), rownames = FALSE, options = list(dom = 't'))
         
       } else {
