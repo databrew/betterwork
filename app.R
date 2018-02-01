@@ -38,7 +38,7 @@ body <- dashboardBody(
         h3('Welcome!'),
         fluidRow(
           column(6,
-                 
+          
                  p(paste0("Welcome to the 'Better Work Research Portal', a collaboration between Better Work, Tufts University, and the World Bank Group.
                           This app is intended to help researchers to explore the results of the 5 country 'Better Work' survey.
                           Addtional research information, data dictionaries, and downloadable copies of the original surveys are available in the 'About' section.
@@ -131,7 +131,7 @@ tabItem(
                       'As with the survey documentation,',
                       'if you have multiple countries selected,',
                       'data will be restricted only to the country',
-                      ' which appears first alphabetically.'),
+                      ' that appears first alphabetically.'),
              h2('Headers dictionary'),
              dataTableOutput('simple_dictionary_table'),
              h2('Responses dictionary'),
@@ -379,6 +379,8 @@ server <- function(input, output) {
               
               mod_results[, 2:ncol(mod_results)] <- apply(mod_results[, 2:ncol(mod_results)], 2, function(x) round(x, 3))
               
+              prettify(mod_results,
+                       download_options = TRUE)
               
             } else {
               DT::datatable(data_frame(' ' = 'The linear probability model requires an outcome with 2 categories'), rownames = FALSE, options = list(dom = 't'))
@@ -400,6 +402,10 @@ server <- function(input, output) {
               odds_ratio <- round(exp(var_coef),2)
               mod_results <- as.data.frame(cbind(odds_ratio, p_value = p))
               
+              
+              prettify(mod_results,
+                       download_options = TRUE)
+              
               # 
               # if(is.null(mod_results)){
               #   return(NULL)
@@ -412,10 +418,14 @@ server <- function(input, output) {
               
               mod_results[, 2:ncol(mod_results)] <- apply(mod_results[, 2:ncol(mod_results)], 2, function(x) round(x, 3))
               
+              
+              
               if(is.null(mod_results)){
                 return(NULL)
               } else {
-                mod_results
+                
+                prettify(mod_results,
+                         download_options = TRUE)
               }
             } else {
               DT::datatable(data_frame(' ' = 'Pick an outcome variable with 2 or more levels'), rownames = FALSE, options = list(dom = 't'))
