@@ -41,12 +41,9 @@ body <- dashboardBody(
                  
                  p(paste0("Welcome to the 'Better Work Research Portal', a collaboration between Better Work, Tufts University, and the World Bank Group.
                           This app is intended to help researchers to explore the results of the 5 country 'Better Work' survey.
-                          To get started, select a country (right), then choose visit the 'Advanced'' analysis (for users familiar with R) or the 'Basic' analysis tab (for all users).")),
-                 
-                 p(paste0('Welcome to the "Better Work Research Portal", a collaboration ',
-                          'between Better Work, Tufts University, and the World Bank. ')),
-                 p(paste0('This app is intended to help researchers to explore ',
-                          'the results of the five-country Better Work survey.')),
+                          Addtional research information, data dictionaries, and downloadable copies of the original surveys are available in the 'About' section.
+                          To get started, select a country (right), then visit the 'Advanced' analysis tabe (for users familiar with R) or the 'Basic' analysis tab (for all users).")),
+      
                  p(a("Betterwork homepage",     href="https://betterwork.org/")),
                  p(a('Interwoven report', href = 'https://openknowledge.worldbank.org/bitstream/handle/10986/22699/99729.pdf?sequence=1&isAllowed=y')),
                  p(a('Betterwork compliance data', href = 'https://portal.betterwork.org/transparency/compliance'))),
