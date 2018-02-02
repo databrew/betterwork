@@ -61,10 +61,10 @@ render_map <-
       }
       
       # Simplify the shape
-      shp <- thinnedSpatialPoly(SP = shp,
-                                minarea = 0,
-                                tolerance = 0.2,
-                                topologyPreserve = TRUE)
+      # shp <- thinnedSpatialPoly(SP = shp,
+      #                           minarea = 0,
+      #                           tolerance = 0.2,
+      #                           topologyPreserve = TRUE)
       
       if(leaflet){
         m <- leaflet(shp) %>%
