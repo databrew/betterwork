@@ -24,7 +24,19 @@ sidebar <- dashboardSidebar(
     menuItem(
       text = 'About',
       tabName = 'about',
-      icon = icon("cog", lib = "glyphicon"))))
+      icon = icon("cog", lib = "glyphicon")),
+    br(),br(),br(),br(),
+    fluidRow(
+      br(),
+      div(img(src='logo_world_bank.png', align = "center", width = '150px'), style="text-align: center;"),
+      br(),
+      div(img(src='logo_tufts.png', align = "center", width = '100px'), style="text-align: center;"),
+             br(),
+             div(img(src='logo_better_work.png', align = "center", width = '100px'), style="text-align: center;"),
+             br()
+    )
+    
+    ))
 
 body <- dashboardBody(
   tags$head(
@@ -40,7 +52,7 @@ body <- dashboardBody(
           column(6,
                  
                  p(paste0("Welcome to the 'Better Work Research Portal', a collaboration between Better Work, Tufts University, and the World Bank Group.
-                          This app is intended to help researchers to explore the results of the 5 country 'Better Work' survey.
+                          This app is intended to help researchers to explore the results of the 5 country Better Work survey.
                           Addtional research information, data dictionaries, and downloadable copies of the original surveys are available in the 'About' section.
                           To get started, select a country (right), then visit the 'Advanced' analysis tabe (for users familiar with R) or the 'Basic' analysis tab (for all users).")),
       
