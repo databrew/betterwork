@@ -465,21 +465,30 @@ server <- function(input, output) {
             
             x <- glm(outcome_y~ ., family = binomial(link = 'logit'), data = pred_sub)
             mod_results <- data.frame(cbind(exp(coef(x)), exp(confint(x))))
-            mod_results<-mod_results[-1,]
-            names(mod_results)<-c('OR', 'lower', 'upper')
-            
-            # # get x_side length
-            # mod_results <- as.data.frame(broom::tidy(glm(outcome_y~ ., family = binomial(link = 'logit'), data = pred_sub)))
-            # 
-            mod_results[, 2:ncol(mod_results)] <- apply(mod_results[, 2:ncol(mod_results)], 2, function(x) round(x, 3))
-            mod_results$`Variable level`<-row.names(mod_results)
-
-            if(is.null(mod_results)){
-              return(NULL)
-            } else {
-              mod_results
+            if(any(apply(mod_results, 2, function(x) any(is.infinite(x))))){
+              DT::datatable(data_frame(' ' = 'The model did not converge with those parameters - try the LPM'), rownames = FALSE, options = list(dom = 't'))
+              
+            } else{
+              mod_results<-mod_results[-1,]
+              names(mod_results)<-c('OR', 'lower', 'upper')
+              mod_results$`Variable level`<- row.names(mod_results)
+              
+              mod_results[, 1:3] <- apply(mod_results[, 1:3], 2, function(x) round(x, 3))
+              
+              
+              # # get x_side length
+              # mod_results <- as.data.frame(broom::tidy(glm(outcome_y~ ., family = binomial(link = 'logit'), data = pred_sub)))
+              # 
+              
+              if(is.null(mod_results)){
+                return(NULL)
+              } else {
+                mod_results
+              }
+              
             }
             
+           
           }
         }
       }
@@ -527,13 +536,33 @@ server <- function(input, output) {
               # change to factor
               # pred_sub <-  as.data.frame(apply(pred_sub, 2, function(x) as.factor(x)), stringsAsFactors = T)
               lm1 <- lm(outcome_y~., pred_sub)
+              conf_int <- confint(lm1)
               vv <- vcovHC(lm1, type="HC1")
-              mod_results <- broom::tidy(coeftest(lm1, vcov = vv))
+              mod_results <- cbind(broom::tidy(coeftest(lm1, vcov = vv)), conf_int)
               mod_results[, 2:ncol(mod_results)] <- apply(mod_results[, 2:ncol(mod_results)], 2, function(x) round(x, 3))
               
+              plot_odds_lpm <-function(x, title = y_side){
+                x$term <- x$std.error <- x$statistic <- x$p.value <- NULL  
+                names(x) <- c('Estimate', 'lower', 'upper')
+                x$vars <- row.names(x)
+                # get confidence inteval 
+                
+                p <- ggplot(x, aes(y= Estimate, x = reorder(vars, Estimate))) +
+                  geom_point() +
+                  geom_errorbar(aes(ymin=lower, ymax=upper), width=.2) +
+                  geom_hline(yintercept =0.5, linetype=2) +
+                  coord_flip() +
+                  labs(title = title, x = 'Variables', y = 'Estimate (probability)') +
+                  theme_bw()
+              }
+              
+              p <- plot_odds_lpm(mod_results, title = y_side)
               # plot y against the first x
-              plot(factor(pred_sub$outcome_y), as.factor(pred_sub[,1]),
-                   xlab = 'Outcome', ylab = x_side[1])
+              if(is.null(p)){
+                return(NULL)
+              } else {
+                p
+              }
             
               
             } else {
@@ -550,28 +579,36 @@ server <- function(input, output) {
             # 
             # mod_results[, 2:ncol(mod_results)] <- apply(mod_results[, 2:ncol(mod_results)], 2, function(x) round(x, 3))
             # 
-            x <- mod_results
-            plot_odds<-function(x, title = y_side){
-              tmp<-data.frame(cbind(exp(coef(x)), exp(confint(x))))
-              odds<-tmp[-1,]
-              names(odds)<-c('OR', 'lower', 'upper')
-              odds$vars<-row.names(odds)
-              ticks<-c(seq(.1, 1, by =.1), seq(0, 10, by =1), seq(10, 100, by =10))
-              
-             p <- ggplot(odds, aes(y= OR, x = reorder(vars, OR))) +
-                geom_point() +
-                geom_errorbar(aes(ymin=lower, ymax=upper), width=.2) +
-                scale_y_log10(breaks=ticks, labels = ticks) +
-                geom_hline(yintercept = 1, linetype=2) +
-                coord_flip() +
-                labs(title = title, x = 'Variables', y = 'OR') +
-                theme_bw()
-            }
+            mod_results<-data.frame(cbind(exp(coef(mod_results)), exp(confint(mod_results))))
             
-            if(is.null(p)){
+            if(any(apply(mod_results, 2, function(x) any(is.infinite(x))))){
               return(NULL)
             } else {
-              p
+              
+              plot_odds<-function(x, title = y_side){
+                odds<-x[-1,]
+                names(odds)<-c('OR', 'lower', 'upper')
+                odds$vars<-row.names(odds)
+                ticks<-c(seq(.1, 1, by =.1), seq(0, 10, by =1), seq(10, 100, by =10))
+                
+                p <- ggplot(odds, aes(y= OR, x = reorder(vars, OR))) +
+                  geom_point() +
+                  geom_errorbar(aes(ymin=lower, ymax=upper), width=.2) +
+                  scale_y_log10(breaks=ticks, labels = ticks) +
+                  geom_hline(yintercept = 1, linetype=2) +
+                  coord_flip() +
+                  labs(title = title, x = 'Variables', y = 'OR') +
+                  theme_bw()
+              }
+              
+              p <- plot_odds(mod_results, title = y_side)
+              
+              if(is.null(p)){
+                return(NULL)
+              } else {
+                p
+              }
+              
             }
             
           }
