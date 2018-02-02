@@ -8,17 +8,17 @@ sidebar <- dashboardSidebar(
     menuItem(
       text="Home",
       tabName="main",
-      icon=icon("eye")),
+      icon=icon("bank")),
     menuItem(
       text="Key indicators",
       tabName="ki",
       icon=icon("key")),
     menuItem(
-      text="Basic analysis",
+      text="Explore variables",
       tabName="basic",
-      icon=icon("pencil-square")),
+      icon=icon("binoculars")),
     menuItem(
-      text="Advanced analysis",
+      text="Model associations",
       tabName="advanced",
       icon=icon("keyboard-o")),
     menuItem(
