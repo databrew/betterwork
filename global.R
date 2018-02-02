@@ -13,6 +13,8 @@ library(nnet)
 library(broom)
 library(sandwich)
 library(reshape2)
+library(lmtest)
+
 options(scipen = '999')
 if('prepared_data.RData' %in% dir()){
   load('prepared_data.RData')
@@ -84,10 +86,23 @@ if('prepared_data.RData' %in% dir()){
   
   # Read in key indicators
   read_key_indicators()
+
   
   save(haiti, key_indicators, file = 'prepared_data.RData')
 }
 
+# create an object that is a list of all variables with two levels to be used in the app
+two_level_factor_index <- apply(haiti, 2, function(x) length(unique(x[!is.na(x)]))  == 2)
+two_level_factor_names <- colnames(haiti)[two_level_factor_index]
+
+# get string that has the actualy number of levles (besides NA to paste with names)
+variable_level_length <- as.data.frame(apply(haiti, 2, function(x) length(unique(x[!is.na(x)]))))
+variable_level_length$var_name <- row.names(variable_level_length)
+colnames(variable_level_length)[1] <- c('count')
+variable_level_length$var_name_count <- paste0(variable_level_length$var_name, ' ', '(',variable_level_length$count, ')')
+
+# remove levels below 2 and above 10
+variable_level_length <- variable_level_length[variable_level_length > 1 & variable_level_length < 9,]
 
 # Get a list of documents available for download
 download_list <- dir('Documentation/', recursive = TRUE)
