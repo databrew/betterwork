@@ -8,23 +8,35 @@ sidebar <- dashboardSidebar(
     menuItem(
       text="Home",
       tabName="main",
-      icon=icon("eye")),
+      icon=icon("bank")),
     menuItem(
       text="Key indicators",
       tabName="ki",
       icon=icon("key")),
     menuItem(
-      text="Basic analysis",
+      text="Explore variables",
       tabName="basic",
-      icon=icon("pencil-square")),
+      icon=icon("binoculars")),
     menuItem(
-      text="Advanced analysis",
+      text="Model associations",
       tabName="advanced",
       icon=icon("keyboard-o")),
     menuItem(
       text = 'About',
       tabName = 'about',
-      icon = icon("cog", lib = "glyphicon"))))
+      icon = icon("cog", lib = "glyphicon")),
+    br(),br(),br(),br(),
+    fluidRow(
+      br(),
+      div(img(src='logo_world_bank.png', align = "center", width = '150px'), style="text-align: center;"),
+      br(),
+      div(img(src='logo_tufts.png', align = "center", width = '100px'), style="text-align: center;"),
+             br(),
+             div(img(src='logo_better_work.png', align = "center", width = '100px'), style="text-align: center;"),
+             br()
+    )
+    
+    ))
 
 body <- dashboardBody(
   tags$head(
@@ -39,7 +51,7 @@ body <- dashboardBody(
         fluidRow(
           column(6,
                  p(paste0("Welcome to the 'Better Work Research Portal', a collaboration between Better Work, Tufts University, and the World Bank Group.
-                          This app is intended to help researchers to explore the results of the 5 country 'Better Work' survey.
+                          This app is intended to help researchers to explore the results of the 5 country Better Work survey.
                           Addtional research information, data dictionaries, and downloadable copies of the original surveys are available in the 'About' section.
                           To get started, select a country (right), then visit the 'Advanced' analysis tabe (for users familiar with R) or the 'Basic' analysis tab (for all users).")),
       
@@ -205,7 +217,6 @@ server <- function(input, output) {
     # renderPlotly({
     renderPlot({
       render_key_indicators_plot(the_country = country(),
-                                 dataframe = df(),
                                  var = input$key_indicators_input)
     })
   
@@ -216,7 +227,7 @@ server <- function(input, output) {
       if(length(the_country) != 1){
         'Select 1 country on the home tab and return to examine the key indicators table.'
       } else {
-        'Key indicators'
+        NULL
       }
     })
   
@@ -227,24 +238,41 @@ server <- function(input, output) {
       if(length(the_country) != 1){
         NULL
       } else {
-        selectInput('key_indicators_input',
-                    'Select indicators',
-                    choices = c('GDP at market prices (current US$)',
-                                'Population, total',
-                                'Gross enrollment ratio, primary, both sexes (%)', 
-                                'CO2 emissions (metric tons per capita)',
-                                'Rural poverty headcount ratio at national poverty lines (% of rural population)',
-                                'Urban poverty headcount ratio at national poverty lines (% of rural population)',
-                                'Life expectancy at birth, total (years)',
-                                'GNI per capita, Atlas method (current US$)',
-                                'Coverage (%) - All Labor Market',
-                                'Labor force, total',
-                                'Unemployment, total (% of total labor force)',
-                                'GDP growth (annual %)'),
-                    multiple = TRUE,
-                    selected = c('GDP at market prices (current US$)',
-                                 'Population, total'),
-                    width = '200%')
+        
+        ki <- key_indicators %>%
+          filter(`Country Name` %in% Hmisc::capitalize(the_country))
+        
+        choices <- 
+          c('GDP at market prices (current US$)',
+            'Population, total',
+            'Gross enrollment ratio, primary, both sexes (%)', 
+            'CO2 emissions (metric tons per capita)',
+            'Rural poverty headcount ratio at national poverty lines (% of rural population)',
+            'Urban poverty headcount ratio at national poverty lines (% of rural population)',
+            'Life expectancy at birth, total (years)',
+            'GNI per capita, Atlas method (current US$)',
+            'Coverage (%) - All Labor Market',
+            'Labor force, total',
+            'Unemployment, total (% of total labor force)',
+            'GDP growth (annual %)')
+        
+        # Keep only the choices which appear in the data
+        choices <- choices[choices %in% ki$`Indicator Name`]
+        
+        fluidPage(
+          fluidRow(h1('Key indicators', align = 'center')),
+          fluidRow('Explore some of the World Bank\'s "World Development Indicators".'),
+          fluidRow(helpText('Full details and data available on ', a(href = 'https://data.worldbank.org/data-catalog/world-development-indicators', 'the World Bank\'s DataBank page.'))),
+          fluidRow(
+            selectInput('key_indicators_input',
+                        'Select indicators',
+                        choices = choices,
+                        multiple = TRUE,
+                        selected = c('GDP at market prices (current US$)',
+                                     'Population, total'),
+                        width = '200%')
+          )
+        )
       }
     })
   

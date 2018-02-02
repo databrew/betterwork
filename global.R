@@ -13,7 +13,7 @@ library(nnet)
 library(broom)
 library(sandwich)
 library(reshape2)
-
+options(scipen = '999')
 if('prepared_data.RData' %in% dir()){
   load('prepared_data.RData')
 } else {
