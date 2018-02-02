@@ -111,10 +111,11 @@ tabItem(
     fluidRow(
       column(12,
              h1('Methodology'),
-             helpText('For outcome variables with two levels, we estimate a binomial logistic regression,
-                       or a linear probability model (with robust stand errors). 
-                       For outcome variables with more than two levels, 
-                       we estimate a multinomial logistic model. This functionality is still under construction.')),
+             helpText('In each case, choose between a binomial logistic regression or a linear probability model. These two models
+                       will estimate the likelihood or probaility of the outcome variable, given the covariates. In the data,
+                       each variable (survey question) has two or more possible responses. If the question has more than 
+                       two responses, you will be prompted to choose which response to estimate in the model - the refernce 
+                       case will be all other possible responses).')),
       column(12,
              DT::dataTableOutput('model_table')),
       column(12,
@@ -442,16 +443,16 @@ server <- function(input, output) {
           if(model_type == 'Linear probability model') {
             
             if(length(unique(pred_sub$outcome_y)) == 2) {
-              unique_levles <-  unique(pred_sub$outcome_y)
-              pred_sub$outcome_y[pred_sub$outcome_y == unique_levles[1]] <- 0 
-              pred_sub$outcome_y[pred_sub$outcome_y == unique_levles[2]] <- 1
+              unique_levels <-  unique(pred_sub$outcome_y)
+              pred_sub$outcome_y[pred_sub$outcome_y == unique_levels[1]] <- 0 
+              pred_sub$outcome_y[pred_sub$outcome_y == unique_levels[2]] <- 1
               
               # change to factor
               # pred_sub <-  as.data.frame(apply(pred_sub, 2, function(x) as.factor(x)), stringsAsFactors = T)
-              mod_results <- as.data.frame(broom::tidy(lm(outcome_y~ ., data = pred_sub)))
-              
+              lm1 <- lm(outcome_y~., pred_sub)
+              vv <- vcovHC(lm1, type="HC1")
+              mod_results <- broom::tidy(coeftest(lm1, vcov = vv))
               mod_results[, 2:ncol(mod_results)] <- apply(mod_results[, 2:ncol(mod_results)], 2, function(x) round(x, 3))
-              
               
             } else {
               DT::datatable(data_frame(' ' = 'The linear probability model requires an outcome with 2 categories'), rownames = FALSE, options = list(dom = 't'))
@@ -461,11 +462,18 @@ server <- function(input, output) {
           } else if(model_type == 'Logistic') {
             # change to factor
             pred_sub <-  as.data.frame(apply(pred_sub, 2, function(x) as.factor(x)), stringsAsFactors = T)
-            # get x_side length
-            mod_results <- as.data.frame(broom::tidy(glm(outcome_y~ ., family = binomial(link = 'logit'), data = pred_sub)))
             
+            x <- glm(outcome_y~ ., family = binomial(link = 'logit'), data = pred_sub)
+            mod_results <- data.frame(cbind(exp(coef(x)), exp(confint(x))))
+            mod_results<-mod_results[-1,]
+            names(mod_results)<-c('OR', 'lower', 'upper')
+            
+            # # get x_side length
+            # mod_results <- as.data.frame(broom::tidy(glm(outcome_y~ ., family = binomial(link = 'logit'), data = pred_sub)))
+            # 
             mod_results[, 2:ncol(mod_results)] <- apply(mod_results[, 2:ncol(mod_results)], 2, function(x) round(x, 3))
-            
+            mod_results$`Variable level`<-row.names(mod_results)
+
             if(is.null(mod_results)){
               return(NULL)
             } else {
@@ -495,8 +503,7 @@ server <- function(input, output) {
       pred_sub <- as.data.frame(d_sub[, colnames(d_sub) %in% x_side])
       pred_sub$outcome_y <- unlist(d[, y_side])
       pred_sub <- pred_sub[complete.cases(pred_sub),]
-      
-      
+    
       if(!is.null(y_side_type)){
         #overwrite previous outcome with 2 level chosen outcome
         pred_sub$outcome_y <- ifelse(pred_sub$outcome_y == y_side_type, y_side_type, 'reference_data')
@@ -513,24 +520,21 @@ server <- function(input, output) {
           if(model_type == 'Linear probability model') {
             
             if(length(unique(pred_sub$outcome_y)) == 2) {
-              unique_levles <-  unique(pred_sub$outcome_y)
-              pred_sub$outcome_y[pred_sub$outcome_y == unique_levles[1]] <- 0 
-              pred_sub$outcome_y[pred_sub$outcome_y == unique_levles[2]] <- 1
+              unique_levels <-  unique(pred_sub$outcome_y)
+              pred_sub$outcome_y[pred_sub$outcome_y == unique_levels[1]] <- 0 
+              pred_sub$outcome_y[pred_sub$outcome_y == unique_levels[2]] <- 1
               
               # change to factor
               # pred_sub <-  as.data.frame(apply(pred_sub, 2, function(x) as.factor(x)), stringsAsFactors = T)
-              mod_results <- as.data.frame(broom::tidy(lm(outcome_y~ ., data = pred_sub)))
-              
+              lm1 <- lm(outcome_y~., pred_sub)
+              vv <- vcovHC(lm1, type="HC1")
+              mod_results <- broom::tidy(coeftest(lm1, vcov = vv))
               mod_results[, 2:ncol(mod_results)] <- apply(mod_results[, 2:ncol(mod_results)], 2, function(x) round(x, 3))
               
-              cols <- colorRampPalette(brewer.pal(n = 9, 'Spectral'))(length(unique(mod_results$term)))
-              p <- ggplot(mod_results, aes(term, estimate)) + geom_bar(stat = 'identity',  alpha = 0.7) +
-                xlab('') + ylab('') +
-                scale_fill_discrete(name = '') +
-                geom_errorbar(aes(ymin=estimate-std.error, ymax=estimate+std.error), width=.1) +
-                theme_world_bank()
-              
-              return(p)
+              # plot y against the first x
+              plot(factor(pred_sub$outcome_y), as.factor(pred_sub[,1]),
+                   xlab = 'Outcome', ylab = x_side[1])
+            
               
             } else {
               DT::datatable(data_frame(' ' = 'The linear probability model requires an outcome with 2 categories'), rownames = FALSE, options = list(dom = 't'))
@@ -541,16 +545,28 @@ server <- function(input, output) {
             # change to factor
             pred_sub <-  as.data.frame(apply(pred_sub, 2, function(x) as.factor(x)), stringsAsFactors = T)
             
+            mod_results <- glm(outcome_y~.,  family = binomial(link = 'logit'), data = pred_sub)
+            # mod_results <- as.data.frame(broom::tidy(glm(outcome_y~ ., family = binomial(link = 'logit'), data = pred_sub)))
             # 
-            mod_results <- as.data.frame(broom::tidy(glm(outcome_y~ ., family = binomial(link = 'logit'), data = pred_sub)))
-            
-            mod_results[, 2:ncol(mod_results)] <- apply(mod_results[, 2:ncol(mod_results)], 2, function(x) round(x, 3))
-            
-            p <- ggplot(mod_results, aes(term, estimate)) + geom_bar(stat = 'identity', alpha = 0.7) +
-              geom_errorbar(aes(ymin=estimate-std.error, ymax=estimate+std.error), width=.1)  +
-              xlab('') + ylab('') + 
-              scale_fill_discrete(name = '') +
-              theme_world_bank()
+            # mod_results[, 2:ncol(mod_results)] <- apply(mod_results[, 2:ncol(mod_results)], 2, function(x) round(x, 3))
+            # 
+            x <- mod_results
+            plot_odds<-function(x, title = y_side){
+              tmp<-data.frame(cbind(exp(coef(x)), exp(confint(x))))
+              odds<-tmp[-1,]
+              names(odds)<-c('OR', 'lower', 'upper')
+              odds$vars<-row.names(odds)
+              ticks<-c(seq(.1, 1, by =.1), seq(0, 10, by =1), seq(10, 100, by =10))
+              
+             p <- ggplot(odds, aes(y= OR, x = reorder(vars, OR))) +
+                geom_point() +
+                geom_errorbar(aes(ymin=lower, ymax=upper), width=.2) +
+                scale_y_log10(breaks=ticks, labels = ticks) +
+                geom_hline(yintercept = 1, linetype=2) +
+                coord_flip() +
+                labs(title = title, x = 'Variables', y = 'OR') +
+                theme_bw()
+            }
             
             if(is.null(p)){
               return(NULL)
