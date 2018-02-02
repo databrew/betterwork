@@ -56,7 +56,6 @@ body <- dashboardBody(
                           To get started, select a country (right), then visit the 'Advanced' analysis tabe (for users familiar with R) or the 'Basic' analysis tab (for all users).")),
       
                  p(a("Betterwork homepage",     href="https://betterwork.org/")),
-                 p(a("Betterwork homepage",     href="bw_logo.png")),
                  p(a('Interwoven report', href = 'https://openknowledge.worldbank.org/bitstream/handle/10986/22699/99729.pdf?sequence=1&isAllowed=y')),
                  p(a('Betterwork compliance data', href = 'https://portal.betterwork.org/transparency/compliance'))),
           column(6,
@@ -105,16 +104,15 @@ tabItem(
              column(4,
                     uiOutput('model_type'))),
     fluidRow(column(4,
-                    p('Levels from variable chosen (the last one is the "reference level"'),
-                    textOutput('outcome_text_levels')),
+                    p('Levels from variable chosen (the last one is the "reference level"):'),
+                    helpText(textOutput('outcome_text_levels'))),
              column(4,
                     uiOutput('outcome_text')),
              column(4,
                     uiOutput('outcome_type'))),
     fluidRow(
       column(12,
-             h1('Methodology'),
-             helpText('In each case, choose between a binomial logistic regression or a linear probability model. These two models
+             helpText('Choose between a binomial logistic regression or a linear probability model. These two models
                        will estimate the likelihood or probaility of the outcome variable, given the covariates. In the data,
                        each variable (survey question) has two or more possible responses. If the question has more than 
                        two responses, you will be prompted to choose which response to estimate in the model - the refernce 
@@ -143,20 +141,7 @@ tabItem(
              selectInput('filenames',
                          'Choose a document to download:',
                          choices = download_list),
-             downloadLink('downloadData', 'Download'),
-             h1('Survey "data dictionaries"'),
-             helpText('The column names and levels can be confusing',
-                      'to those not familiar with the survey.',
-                      'See the below',
-                      '"dictionaries" to decipher headers and responses.',
-                      'As with the survey documentation,',
-                      'if you have multiple countries selected,',
-                      'data will be restricted only to the country',
-                      ' which appears first alphabetically.'),
-             h2('Headers dictionary'),
-             dataTableOutput('simple_dictionary_table'),
-             h2('Responses dictionary'),
-             dataTableOutput('complete_dictionary_table'))
+             downloadLink('downloadData', 'Download'))
     )))
   )
 )
@@ -282,10 +267,12 @@ server <- function(input, output) {
   
   output$variable_basic_in <- renderUI({
     x <- df()
+    choices <- names(x)
+    choices <- choices[!grepl(' id|consent|day|month|ready', tolower(choices))]
     if(!is.null(x)){
       selectInput('basic_variable',
                   'Select variable(s) for analysis',
-                  choices = names(x),
+                  choices = choices,
                   multiple = TRUE,
                   selected = c('Sex'))
     } else {
@@ -341,7 +328,7 @@ server <- function(input, output) {
     choices <- variable_level_length$var_name
     if(!is.null(x)){
       selectInput('outcome_var',
-                  'Select variable interest',
+                  'Select variable of interest',
                   choices = choices,
                   multiple = FALSE,
                   selected = c('Daughters in school'))
