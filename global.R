@@ -95,5 +95,14 @@ if('prepared_data.RData' %in% dir()){
 two_level_factor_index <- apply(haiti, 2, function(x) length(unique(x[!is.na(x)]))  == 2)
 two_level_factor_names <- colnames(haiti)[two_level_factor_index]
 
+# get string that has the actualy number of levles (besides NA to paste with names)
+variable_level_length <- as.data.frame(apply(haiti, 2, function(x) length(unique(x[!is.na(x)]))))
+variable_level_length$var_name <- row.names(variable_level_length)
+colnames(variable_level_length)[1] <- c('count')
+variable_level_length$var_name_count <- paste0(variable_level_length$var_name, ' ', '(',variable_level_length$count, ')')
+
+# remove levels below 2 and above 10
+variable_level_length <- variable_level_length[variable_level_length > 1 & variable_level_length < 9,]
+
 # Get a list of documents available for download
 download_list <- dir('Documentation/', recursive = TRUE)

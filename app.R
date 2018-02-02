@@ -105,7 +105,10 @@ tabItem(
              column(4,
                     uiOutput('model_type'))),
     fluidRow(column(4,
-                    textOutput('outcome_text')),
+                    p('Levels from variable chosen (the last one is the "reference level"'),
+                    textOutput('outcome_text_levels')),
+             column(4,
+                    uiOutput('outcome_text')),
              column(4,
                     uiOutput('outcome_type'))),
     fluidRow(
@@ -334,10 +337,12 @@ server <- function(input, output) {
   
   output$outcome_var <- renderUI({
     x <- df()
+    # get choices from variable_level_length
+    choices <- variable_level_length$var_name
     if(!is.null(x)){
       selectInput('outcome_var',
                   'Select variable interest',
-                  choices = names(x),
+                  choices = choices,
                   multiple = FALSE,
                   selected = c('Daughters in school'))
     } else {
@@ -373,6 +378,22 @@ server <- function(input, output) {
         paste0("You've selected a variable with more than two levels. Pleae specify which level you would like to examine")
       }
       
+    } else {
+      NULL
+    }
+  })
+  
+  output$outcome_text_levels <- renderText({
+    x <- df()
+    outcome_var <- input$outcome_var
+   
+    if(!is.null(x) & !is.null(input$outcome_var)){
+      y_data <- as.data.frame(x[, outcome_var])
+      y_data <- y_data[!is.na(y_data)]
+      y_data_levels <- sort(unique(y_data))
+      y_data_levles <- sort(y_data_levels)
+      paste0(y_data_levels, collapse = ', ')
+
     } else {
       NULL
     }
@@ -447,12 +468,15 @@ server <- function(input, output) {
               pred_sub$outcome_y[pred_sub$outcome_y == unique_levels[1]] <- 0 
               pred_sub$outcome_y[pred_sub$outcome_y == unique_levels[2]] <- 1
               
-              # change to factor
-              # pred_sub <-  as.data.frame(apply(pred_sub, 2, function(x) as.factor(x)), stringsAsFactors = T)
               lm1 <- lm(outcome_y~., pred_sub)
+              conf_int <- confint(lm1)
               vv <- vcovHC(lm1, type="HC1")
-              mod_results <- broom::tidy(coeftest(lm1, vcov = vv))
+              mod_results <- cbind(broom::tidy(coeftest(lm1, vcov = vv)), conf_int)
               mod_results[, 2:ncol(mod_results)] <- apply(mod_results[, 2:ncol(mod_results)], 2, function(x) round(x, 3))
+              mod_results$std.error <- mod_results$statistic <- mod_results$p.value <- NULL  
+              names(mod_results) <- c('Variable level','Estimate', 'lower', 'upper')
+              mod_results <- mod_results[-1,]
+              mod_results <- mod_results[, c('Estimate', 'lower', 'upper', 'Variable level')]
               
             } else {
               DT::datatable(data_frame(' ' = 'The linear probability model requires an outcome with 2 categories'), rownames = FALSE, options = list(dom = 't'))
@@ -540,14 +564,15 @@ server <- function(input, output) {
               vv <- vcovHC(lm1, type="HC1")
               mod_results <- cbind(broom::tidy(coeftest(lm1, vcov = vv)), conf_int)
               mod_results[, 2:ncol(mod_results)] <- apply(mod_results[, 2:ncol(mod_results)], 2, function(x) round(x, 3))
+              mod_results$std.error <- mod_results$statistic <- mod_results$p.value <- NULL  
+              names(mod_results) <- c('Variable','Estimate', 'lower', 'upper')
+              mod_results <- mod_results[-1,]
+              # get confidence inteval 
               
               plot_odds_lpm <-function(x, title = y_side){
-                x$term <- x$std.error <- x$statistic <- x$p.value <- NULL  
-                names(x) <- c('Estimate', 'lower', 'upper')
-                x$vars <- row.names(x)
-                # get confidence inteval 
                 
-                p <- ggplot(x, aes(y= Estimate, x = reorder(vars, Estimate))) +
+                
+                p <- ggplot(x, aes(y= Estimate, x = reorder(Variable, Estimate))) +
                   geom_point() +
                   geom_errorbar(aes(ymin=lower, ymax=upper), width=.2) +
                   geom_hline(yintercept =0.5, linetype=2) +
@@ -589,12 +614,12 @@ server <- function(input, output) {
                 odds<-x[-1,]
                 names(odds)<-c('OR', 'lower', 'upper')
                 odds$vars<-row.names(odds)
-                ticks<-c(seq(.1, 1, by =.1), seq(0, 10, by =1), seq(10, 100, by =10))
+                # ticks<-c(seq(.1, 1, by =.1), seq(0, 10, by =1), seq(10, 100, by =10))
                 
                 p <- ggplot(odds, aes(y= OR, x = reorder(vars, OR))) +
                   geom_point() +
                   geom_errorbar(aes(ymin=lower, ymax=upper), width=.2) +
-                  scale_y_log10(breaks=ticks, labels = ticks) +
+                  # scale_y_log10(breaks=ticks, labels = ticks) +
                   geom_hline(yintercept = 1, linetype=2) +
                   coord_flip() +
                   labs(title = title, x = 'Variables', y = 'OR') +
