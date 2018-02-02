@@ -342,7 +342,7 @@ server <- function(input, output) {
     x <- df()
     if(!is.null(x) & !is.null(input$outcome_var)){
       if(!input$outcome_var %in% two_level_factor_names) {
-        var <- x %>% select(input$outcome_var)
+        var <- x %>% dplyr::select(input$outcome_var)
         choices <- as.data.frame((unique(var)))
         choices <- choices[!is.na(choices)]
         y_type <- x %>% filter()
