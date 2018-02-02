@@ -93,9 +93,9 @@ tabItem(
              column(4,
                     uiOutput('model_type'))),
     fluidRow(column(4,
-                    uiOutput('outcome_type')),
+                    textOutput('outcome_text')),
              column(4,
-                    textOutput('outcome_text'))),
+                    uiOutput('outcome_type'))),
     fluidRow(
       column(12,
              h1('Methodology'),
@@ -310,7 +310,7 @@ server <- function(input, output) {
                   'Select variable interest',
                   choices = names(x),
                   multiple = FALSE,
-                  selected = c('Injured at factory'))
+                  selected = c('Daughters in school'))
     } else {
       NULL
     }
