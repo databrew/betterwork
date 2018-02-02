@@ -85,6 +85,10 @@ if('prepared_data.RData' %in% dir()){
   # Read in key indicators
   read_key_indicators()
   
+  # create an object that is a list of all variables with two levels to be used in the app
+  two_level_factor_index <- apply(haiti, 2, function(x) length(unique(x[!is.na(x)]))  == 2)
+  two_level_factor_names <- colnames(haiti)[two_level_factor_index]
+  
   save(haiti, key_indicators, file = 'prepared_data.RData')
 }
 

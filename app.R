@@ -91,7 +91,11 @@ tabItem(
              column(4,
                     uiOutput('predictors')),
              column(4,
-                    uiOutput('model_type'))), 
+                    uiOutput('model_type'))),
+    fluidRow(column(4,
+                    uiOutput('outcome_type')),
+             column(4,
+                    textOutput('outcome_text'))),
     fluidRow(
       column(12,
              h1('Methodology'),
@@ -307,6 +311,37 @@ server <- function(input, output) {
                   choices = names(x),
                   multiple = FALSE,
                   selected = c('Injured at factory'))
+    } else {
+      NULL
+    }
+  })
+  
+  
+  output$outcome_type <- renderUI({
+    x <- df()
+    if(!is.null(x) & !is.null(input$outcome_var)){
+      if(!input$outcome_var %in% two_level_factor_names) {
+        choices <- names(x)[!names(x) %in% two_level_factor_names]
+        y_type <- x %>% filter()
+        selectInput('outcome_type',
+                    'Select variable interest',
+                    choices = choices,
+                    multiple = FALSE)
+      }
+      
+    } else {
+      NULL
+    }
+  })
+  
+  
+  output$outcome_text <- renderText({
+    x <- df()
+    if(!is.null(x) & !is.null(input$outcome_var)){
+      if(!input$outcome_var %in% two_level_factor_names) {
+        paste0("You've selected a variable with more than two levels. Pleae specify which level you would like to examine")
+      }
+      
     } else {
       NULL
     }
