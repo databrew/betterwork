@@ -38,13 +38,13 @@ body <- dashboardBody(
         h3('Welcome!'),
         fluidRow(
           column(6,
-                 
                  p(paste0("Welcome to the 'Better Work Research Portal', a collaboration between Better Work, Tufts University, and the World Bank Group.
                           This app is intended to help researchers to explore the results of the 5 country 'Better Work' survey.
                           Addtional research information, data dictionaries, and downloadable copies of the original surveys are available in the 'About' section.
                           To get started, select a country (right), then visit the 'Advanced' analysis tabe (for users familiar with R) or the 'Basic' analysis tab (for all users).")),
       
                  p(a("Betterwork homepage",     href="https://betterwork.org/")),
+                 p(a("Betterwork homepage",     href="bw_logo.png")),
                  p(a('Interwoven report', href = 'https://openknowledge.worldbank.org/bitstream/handle/10986/22699/99729.pdf?sequence=1&isAllowed=y')),
                  p(a('Betterwork compliance data', href = 'https://portal.betterwork.org/transparency/compliance'))),
           column(6,
@@ -94,15 +94,16 @@ tabItem(
                     uiOutput('model_type'))), 
     fluidRow(
       column(12,
-             plotOutput('model_plot')),
-      column(12,
-             DT::dataTableOutput('model_table')),
-      column(12,
              h1('Methodology'),
              helpText('For outcome variables with two levels, we estimate a binomial logistic regression,
                        or a linear probability model (with robust stand errors). 
                        For outcome variables with more than two levels, 
-                       we estimate a multinomial logistic model. This functionality is still under construction.'))
+                       we estimate a multinomial logistic model. This functionality is still under construction.')),
+      column(12,
+             plotOutput('model_plot')),
+      column(12,
+             DT::dataTableOutput('model_table'))
+      
     )
     # THIS IS WHERE WE NEED TO BUILD MODELING INPUTS AND OUTPUTS
   )
@@ -343,6 +344,7 @@ server <- function(input, output) {
     }
   })
   
+  # make a reactive data object for both model and plot
   
   output$model_table <- DT::renderDataTable({
     # get specificaitons 
@@ -434,7 +436,6 @@ server <- function(input, output) {
     x_side <- input$predictors
     model_type <- input$model_type
     d <- df()
-  
     
     if(is.null(y_side) | is.null(x_side) | is.null(model_type) | is.null(d)) {
       return(NULL)
@@ -537,7 +538,7 @@ server <- function(input, output) {
         
       }
       
-      }
+    }
       
   })
   
