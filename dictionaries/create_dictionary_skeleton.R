@@ -1,26 +1,26 @@
 library(dplyr)
 library(purrr)
 library(haven)
-# Read haiti data
-haiti <- read_dta('../data/Haiti/Haiti_forApp_June2016.dta')
-n <- ncol(haiti)
-labels_list <- map(1:n, function(x) attr(haiti[[x]], "label") )
+# Read jordan data
+jordan <- read_dta('../data/Jordan/Jordan_forApp_June2016.dta')
+n <- ncol(jordan)
+labels_list <- map(1:n, function(x) attr(jordan[[x]], "label") )
 # if a vector of character strings is preferable
 labels_vector <- map_chr(1:n, function(x){
-  x <- attr(haiti[[x]], "label")[1] 
+  x <- attr(jordan[[x]], "label")[1] 
   if(is.null(x)){
     x <- NA
   }
   x
 })
 # Make sure to fix the _ at beginning of variable name
-names(haiti) <- ifelse(substr(names(haiti),1,1) == '_',
-                       substr(names(haiti),2,nchar(names(haiti))),
-                       names(haiti))
+names(jordan) <- ifelse(substr(names(jordan),1,1) == '_',
+                       substr(names(jordan),2,nchar(names(jordan))),
+                       names(jordan))
 
 
 # Create dictionary
-variable_dictionary <- data_frame(variable = names(haiti),
+variable_dictionary <- data_frame(variable = names(jordan),
                          stata_label = labels_vector)
 
 
@@ -30,7 +30,7 @@ for (i in 1:nrow(variable_dictionary)){
   message(i)
   dict <- variable_dictionary[i,]
   var <- dict$variable
-  data <- haiti %>%
+  data <- jordan %>%
     group_by_(response = var) %>%
     tally %>%
     filter(!is.na(response)) %>%
@@ -63,4 +63,3 @@ for (i in 1:nrow(variable_dictionary)){
 }
 dictionary <- bind_rows(dictionary_list)
 readr::write_csv(dictionary, '~/Desktop/dict.csv')  
-# Convert negatives to NAs
