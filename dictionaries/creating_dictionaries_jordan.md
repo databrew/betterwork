@@ -12,7 +12,7 @@ We are building a web application for data coming from 4 surveys done on Haitian
 
 ## What do we do?
 
-- Click [here](https://docs.google.com/spreadsheets/d/e/2PACX-1vSl0V5hugIXVVS7ACXHvXu1hHlgkFbPbkkmGNKWsRZku-EKlCwfA64Y_qscLVq_j2UGtj99bc4ASE4Q/pubhtml) to open a spreadsheet with a partially filled out dictionary. This is where we'll be working.
+- Click [here](https://docs.google.com/spreadsheets/d/1px-ES31bJWtbaqwQX1zbqGaV-7BgeusIJ1-6XhT21tU/edit?usp=sharing) to open a spreadsheet with a partially filled out dictionary. This is where we'll be working.
 - Click [here](https://github.com/databrew/betterwork/blob/master/Documentation/Jordan%20Surveys/pdf/all_jordan_dictionaries.pdf) to get a pdf with all the original surveys.
 
 ## How do we fill out the spreadsheet?
