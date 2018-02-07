@@ -60,7 +60,8 @@ body <- dashboardBody(
                  p(a('Betterwork compliance data', href = 'https://portal.betterwork.org/transparency/compliance'))),
           column(6,
                  selectInput('country', 'Country: ',
-                             choices = c('Haiti' = 'haiti'), 
+                             choices = c('Haiti' = 'haiti',
+                                         'Jordan' = 'jordan'), 
                              multiple = TRUE),
                  # plotOutput('country_map', height = 300),
                  h1(textOutput('ready_text'), align = 'center'),
@@ -159,7 +160,12 @@ server <- function(input, output) {
   
   # Reactive dataframe
   df <- reactive({
-    haiti
+    if(!is.null(input$country)){
+      full_data %>%
+        filter(tolower(Country) %in% tolower(input$country))
+    } else {
+      full_data
+    }
   })
   
   # Okay if a country is selected and we have data
@@ -297,6 +303,7 @@ server <- function(input, output) {
             labs(title = 'Select 1 or 2 variables at left')
         }
       } else {
+        print(head(d))
         g <- plotter(df = d,
                      variable = x)
         g$plot
@@ -391,6 +398,8 @@ server <- function(input, output) {
     x_sub <- x[, sapply(x, class) == 'character']
     
     bad_var_flag <- apply(x_sub, 2, function(x) length(unique(x)) < 3)
+    # Don't count "country" as a bad var
+    bad_var_flag[names(bad_var_flag) == 'Country'] <- FALSE
     x_sub <- x_sub[ , !bad_var_flag]
     x_names <- colnames(x_sub) 
     if(!is.null(x_names)){
