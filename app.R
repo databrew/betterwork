@@ -219,7 +219,7 @@ server <- function(input, output) {
   output$key_indicators_header <-
     renderText({
       the_country <- country() 
-      if(length(the_country) != 1){
+      if(length(the_country) > 999){
         'Select 1 country on the home tab and return to examine the key indicators table.'
       } else {
         NULL
@@ -230,7 +230,7 @@ server <- function(input, output) {
   output$key_indicators_ui <-
     renderUI({
       the_country <- country() 
-      if(length(the_country) != 1){
+      if(length(the_country) > 999){
         NULL
       } else {
         
