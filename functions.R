@@ -122,16 +122,17 @@ render_key_indicators_plot <-
       the_plot <-
         ggplot(data = ki,
                aes(x = factor(year), 
-                   y = value / 1000000)) + 
-        geom_line(aes(color = `Country Name`), alpha = 0.6,
-                  group = 1) +
-        geom_point(alpha = 0.6) +
+                   y = value)) + 
+        geom_line(aes(color = `Country Name`,
+                      group = `Country Name`), alpha = 0.6) +
+        geom_point(alpha = 0.6,
+                   aes(color = `Country Name`)) +
         xlab('Year') +
         ylab('Value') +
         theme_world_bank(base_size = bs) +
         facet_wrap(~`Indicator Name`, scales = 'free_y') +
         theme(axis.text.x = element_text(size = 10)) +
-        scale_y_continuous(name="Value (millions)", labels = comma) +
+        scale_y_continuous(name="Value", labels = comma) +
         scale_color_manual(name = '',
                            values = cols)
       
