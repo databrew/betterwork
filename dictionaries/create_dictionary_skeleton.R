@@ -1,26 +1,26 @@
 library(dplyr)
 library(purrr)
 library(haven)
-# Read haiti data
-haiti <- read_dta('../data/Haiti/Haiti_forApp_June2016.dta')
-n <- ncol(haiti)
-labels_list <- map(1:n, function(x) attr(haiti[[x]], "label") )
+# Read jordan data
+jordan <- read_dta('../data/Jordan/Jordan_forApp_June2016.dta')
+n <- ncol(jordan)
+labels_list <- map(1:n, function(x) attr(jordan[[x]], "label") )
 # if a vector of character strings is preferable
 labels_vector <- map_chr(1:n, function(x){
-  x <- attr(haiti[[x]], "label")[1] 
+  x <- attr(jordan[[x]], "label")[1] 
   if(is.null(x)){
     x <- NA
   }
   x
 })
 # Make sure to fix the _ at beginning of variable name
-names(haiti) <- ifelse(substr(names(haiti),1,1) == '_',
-                       substr(names(haiti),2,nchar(names(haiti))),
-                       names(haiti))
+names(jordan) <- ifelse(substr(names(jordan),1,1) == '_',
+                       substr(names(jordan),2,nchar(names(jordan))),
+                       names(jordan))
 
 
 # Create dictionary
-variable_dictionary <- data_frame(variable = names(haiti),
+variable_dictionary <- data_frame(variable = names(jordan),
                          stata_label = labels_vector)
 
 
@@ -30,7 +30,7 @@ for (i in 1:nrow(variable_dictionary)){
   message(i)
   dict <- variable_dictionary[i,]
   var <- dict$variable
-  data <- haiti %>%
+  data <- jordan %>%
     group_by_(response = var) %>%
     tally %>%
     filter(!is.na(response)) %>%
@@ -62,5 +62,50 @@ for (i in 1:nrow(variable_dictionary)){
   # print(head(data))
 }
 dictionary <- bind_rows(dictionary_list)
+
+# Put in google sheets format
+dictionary <- dictionary %>%
+  mutate(variable_translation_short = variable_translation) %>%
+  dplyr::rename(variable_translation_long = variable_translation) %>%
+  mutate(survey = '', comment = '')
 readr::write_csv(dictionary, '~/Desktop/dict.csv')  
-# Convert negatives to NAs
+
+# Read in haiti dictionary
+library(googlesheets)
+haiti_dict <- gs_url('https://docs.google.com/spreadsheets/d/17-Kd9-a-X2JvVXql679LxI9QG3is1IHEFS-Fe9PlO9Y/edit#gid=0')
+haiti_dict <- gs_read_csv(haiti_dict)
+# Remove any incomplete parts of the haiti_dict
+haiti_dict <-
+  haiti_dict %>%
+  filter(!is.na(variable_translation_short))
+
+# Merge the filled out parts of haiti dict with the jordan dict
+merged <-
+  left_join(dictionary %>%
+              mutate(survey = c(rep('Workers Survey', 2394),
+                                rep('HR Survey', 1787),
+                                rep('IE Survey', 596),
+                                rep('GM Survey', 1575))) %>%
+              dplyr::select(-variable_translation_short,
+                            -variable_translation_long,
+                            -response_translation),
+            haiti_dict %>%
+              dplyr::select(variable_translation_short,
+                            variable_translation_long,
+                            stata_label,
+                            response,
+                            response_translation,
+                            survey) %>%
+              distinct(stata_label, response, .keep_all = TRUE))
+
+# put into google sheets format
+merged <- merged %>%
+  dplyr::select(variable, variable_translation_short, variable_translation_long, stata_label, response, response_translation, survey, comment)
+merged <- merged %>%
+  mutate(variable_translation_short = ifelse(is.na(variable_translation_short), '', variable_translation_short),
+         variable_translation_long = ifelse(is.na(variable_translation_long), '', variable_translation_long),
+         response_translation = ifelse(is.na(response_translation) & as.numeric(response) < 0, NA, 
+                                       ifelse(is.na(response_translation), '', response_translation)),
+         survey = ifelse(is.na(survey), '', survey))
+readr::write_csv(merged, '~/Desktop/merged.csv')
+  

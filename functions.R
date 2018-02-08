@@ -61,10 +61,10 @@ render_map <-
       }
       
       # Simplify the shape
-      shp <- thinnedSpatialPoly(SP = shp,
-                                minarea = 0,
-                                tolerance = 0.2,
-                                topologyPreserve = TRUE)
+      # shp <- thinnedSpatialPoly(SP = shp,
+      #                           minarea = 0,
+      #                           tolerance = 0.2,
+      #                           topologyPreserve = TRUE)
       
       if(leaflet){
         m <- leaflet(shp) %>%
@@ -84,15 +84,14 @@ render_map <-
 
 render_key_indicators_plot <- 
   function(the_country = NULL,
-           dataframe = NULL,
            var = NULL){
-    
-    if(length(the_country) != 1){
+    require(scales)
+    # if(length(the_country) != 1){
+    if(is.null(the_country) | is.null(var)){
       return(NULL)
     } else {
-      x <- dataframe
       ki <- key_indicators %>%
-        filter(`Country Name` == Hmisc::capitalize(the_country))
+        filter(`Country Name` %in% Hmisc::capitalize(the_country))
       # Keep only a few of the key indicators
       keepers <- 
         c('GDP at market prices (current US$)',
@@ -119,17 +118,23 @@ render_key_indicators_plot <-
                      ifelse(length(var) < 5, 14,
                             ifelse(length(var < 9), 10, bs)))
       }
+      cols <- colorRampPalette(brewer.pal(n = 9, 'Spectral'))(length(unique(ki$`Country Name`)))
       the_plot <-
         ggplot(data = ki,
                aes(x = factor(year), 
-                   y = value)) + 
-        geom_line(color = 'darkblue', alpha = 0.6,
+                   y = value / 1000000)) + 
+        geom_line(aes(color = `Country Name`), alpha = 0.6,
                   group = 1) +
+        geom_point(alpha = 0.6) +
         xlab('Year') +
         ylab('Value') +
         theme_world_bank(base_size = bs) +
         facet_wrap(~`Indicator Name`, scales = 'free_y') +
-        theme(axis.text.x = element_text(angle = 90))
+        theme(axis.text.x = element_text(size = 10)) +
+        scale_y_continuous(name="Value (millions)", labels = comma) +
+        scale_color_manual(name = '',
+                           values = cols)
+      
       # ggplotly(the_plot)
       print(the_plot) 
     }
