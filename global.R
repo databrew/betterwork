@@ -125,3 +125,4 @@ variable_level_length <- variable_level_length[variable_level_length > 1 & varia
 
 # Get a list of documents available for download
 download_list <- dir('Documentation/', recursive = TRUE)
+download_list <- download_list[grepl('_all', download_list)]
