@@ -512,8 +512,6 @@ server <- function(input, output) {
               }
               
             }
-            
-           
           }
         }
       }
