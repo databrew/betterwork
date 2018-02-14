@@ -281,7 +281,7 @@ plotter <- function(df, variable = NULL){
              y = 'Density')
       
       # Both categorical
-    } else if(classes[1] == 'character' & classes[2] == 'character'){
+    } else if (classes[1] == 'character' & classes[2] == 'character'){
       data_simple <- 
         df %>%
         group_by(x,y) %>%
