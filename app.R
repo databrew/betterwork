@@ -327,7 +327,9 @@ server <- function(input, output) {
       } else {
         g <- plotter(df = d,
                      variable = x)
-        prettify(g$data,
+        temp <- g$data 
+        temp[is.na(temp)] <- 'NA'
+        prettify(as.data.frame(temp),
                  download_options = TRUE)
       }
       
